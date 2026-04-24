@@ -13,10 +13,10 @@ class AuthorizeNetService
 
     public function __construct()
     {
-        $this->apiLoginId     = (string) env('AUTHORIZE_NET_API_LOGIN_ID', '');
-        $this->transactionKey = (string) env('AUTHORIZE_NET_TRANSACTION_KEY', '');
+        $this->apiLoginId     = (string) config('services.authorize_net.api_login_id', '');
+        $this->transactionKey = (string) config('services.authorize_net.transaction_key', '');
 
-        $this->endpoint = env('AUTHORIZE_NET_ENVIRONMENT') === 'production'
+        $this->endpoint = config('services.authorize_net.environment') === 'production'
             ? 'https://api.authorize.net/xml/v1/request.api'
             : 'https://apitest.authorize.net/xml/v1/request.api';
     }

@@ -96,10 +96,10 @@ class TerminateFailedSubscriptions extends Command
     // ─────────────────────────────────────────────────────────────────────────
     private function fireGhlTerminationWebhook(Subscription $subscription): void
     {
-        $url = env('GHL_SUBSCRIPTION_TERMINATED_WEBHOOK_URL');
+        $url = config('services.ghl.subscription_terminated_webhook_url');
 
         if (!$url) {
-            Log::warning('GHL_SUBSCRIPTION_TERMINATED_WEBHOOK_URL not set in .env', [
+            Log::warning('GHL subscription_terminated_webhook_url not set (check GHL_SUBSCRIPTION_TERMINATED_WEBHOOK_URL in .env)', [
                 'subscription_id' => $subscription->id,
             ]);
             return;

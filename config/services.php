@@ -36,6 +36,13 @@ return [
         'lead_webhook_url' => env('GHL_LEAD_URL'),
         'roadmap_webhook_url' => env('GHL_ROADMAP_WEBHOOK_URL'),
         'recurring_failed_webhook_url' => env('GHL_RECURRING_FAILED_WEBHOOK_URL'),
+        'subscription_terminated_webhook_url' => env('GHL_SUBSCRIPTION_TERMINATED_WEBHOOK_URL'),
+        'subscription_recovered_webhook_url'  => env('GHL_SUBSCRIPTION_RECOVERED_WEBHOOK_URL'),
+    ],
+
+    'meta' => [
+        'pixel_id'   => env('META_PIXEL_ID'),
+        'capi_token' => env('META_CAPI_TOKEN'),
     ],
 
 
@@ -56,7 +63,9 @@ return [
     'api_login_id'      => env('AUTHORIZE_NET_API_LOGIN_ID'),
     'transaction_key'   => env('AUTHORIZE_NET_TRANSACTION_KEY'),
     'public_client_key' => env('AUTHORIZE_NET_PUBLIC_CLIENT_KEY'),
+    'signature_key'     => env('AUTHORIZE_NET_SIGNATURE_KEY'),
     'environment'       => env('AUTHORIZE_NET_ENVIRONMENT', 'sandbox'),
+    'webhook_enforce_signature' => env('AUTHORIZE_NET_WEBHOOK_ENFORCE_SIGNATURE', false),
 ],
 
 ];

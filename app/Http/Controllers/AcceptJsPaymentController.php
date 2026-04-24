@@ -702,7 +702,7 @@ class AcceptJsPaymentController extends Controller
     {
         if ($referralCode) {
 
-            $url = env('GHL_REFERRAL_WEBHOOK_URL');
+            $url = config('services.ghl.referral_webhook_url');
 
             $payload = [
                 'first_name'     => $customer['first_name'],
@@ -734,7 +734,7 @@ class AcceptJsPaymentController extends Controller
 
         } else {
 
-            $url = env('GHL_CHECKOUT_WEBHOOK_URL');
+            $url = config('services.ghl.checkout_webhook_url');
 
             $payload = [
                 'first_name'     => $customer['first_name'],
@@ -798,8 +798,8 @@ class AcceptJsPaymentController extends Controller
         string  $ip,
         ?string $userAgent
     ): void {
-        $pixelId    = env('META_PIXEL_ID');
-        $capiToken  = env('META_CAPI_TOKEN');
+        $pixelId    = config('services.meta.pixel_id');
+        $capiToken  = config('services.meta.capi_token');
 
         if (!$pixelId || !$capiToken) {
             Log::warning('Meta CAPI skipped — META_PIXEL_ID or META_CAPI_TOKEN not set in .env', [

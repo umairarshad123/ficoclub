@@ -80,6 +80,28 @@ class AuthorizeNetWebhookController extends Controller
 
     public function handle(Request $request)
     {
+        // ── Signature verification (log-only by default) ──────────────────────
+        // Runs BEFORE json_decode so we hash the exact raw bytes Auth.net signed.
+        // In log-only mode (config services.authorize_net.webhook_enforce_signature=false)
+        // mismatches are logged but the request still processes normally. Flip the
+        // toggle to true only after logs confirm real webhooks consistently match.
+        $sigResult = $this->verifySignature($request);
+        $enforceSig = (bool) config('services.authorize_net.webhook_enforce_signature', false);
+
+        if ($sigResult === false) {
+            Log::warning('Authorize.net webhook signature INVALID', [
+                'ip'         => $request->ip(),
+                'enforce'    => $enforceSig,
+                'has_header' => $request->hasHeader('X-ANET-Signature'),
+            ]);
+            if ($enforceSig) {
+                return response('Invalid signature', 401);
+            }
+        } elseif ($sigResult === true) {
+            Log::info('Authorize.net webhook signature OK');
+        }
+        // $sigResult === null → signature key or header absent; already logged inside helper
+
         $payload = json_decode($request->getContent(), true);
 
         Log::info('Authorize.net webhook received', ['payload' => $payload]);
@@ -239,7 +261,7 @@ class AuthorizeNetWebhookController extends Controller
 
             // Optional GHL notification for recovered customers
             $this->fireGhl(
-                env('GHL_SUBSCRIPTION_RECOVERED_WEBHOOK_URL'),
+                config('services.ghl.subscription_recovered_webhook_url'),
                 [
                     'first_name'          => $subscription->first_name,
                     'last_name'           => $subscription->last_name,
@@ -455,7 +477,7 @@ class AuthorizeNetWebhookController extends Controller
         ]);
 
         $this->fireGhl(
-            env('GHL_SUBSCRIPTION_TERMINATED_WEBHOOK_URL'),
+            config('services.ghl.subscription_terminated_webhook_url'),
             [
                 'first_name'          => $subscription->first_name,
                 'last_name'           => $subscription->last_name,
@@ -516,25 +538,86 @@ class AuthorizeNetWebhookController extends Controller
 
     // ═════════════════════════════════════════════════════════════════════════
     // Shared GHL poster
+    //
+    // Returns true on success, false on failure, null when URL was not configured.
+    // Logs response status/body preview so silent failures are visible.
     // ═════════════════════════════════════════════════════════════════════════
     private function fireGhl(?string $url, array $data, string $label, string $context)
     {
         if (!$url) {
             Log::info("GHL $label webhook URL not configured — skipping", ['context' => $context]);
-            return;
+            return null;
         }
 
         try {
-            Http::timeout(15)->post($url, $data);
-            Log::info("GHL $label webhook fired", [
-                'context' => $context,
-                'email'   => $data['email'] ?? null,
-            ]);
+            $response = Http::timeout(15)->post($url, $data);
+            $ok = $response->successful();
+
+            $logCtx = [
+                'context'      => $context,
+                'email'        => $data['email'] ?? null,
+                'status'       => $response->status(),
+                'body_preview' => substr((string) $response->body(), 0, 500),
+            ];
+
+            if ($ok) {
+                Log::info("GHL $label webhook fired", $logCtx);
+                return true;
+            }
+
+            Log::error("GHL $label webhook returned non-success status", $logCtx);
+            return false;
         } catch (\Throwable $e) {
             Log::error("GHL $label webhook failed", [
-                'context' => $context,
-                'error'   => $e->getMessage(),
+                'context'   => $context,
+                'email'     => $data['email'] ?? null,
+                'error'     => $e->getMessage(),
+                'exception' => get_class($e),
             ]);
+            return false;
         }
+    }
+
+    // ═════════════════════════════════════════════════════════════════════════
+    // Authorize.Net webhook HMAC-SHA512 signature verification
+    //
+    // Auth.net sends header:   X-ANET-Signature: sha512=<UPPERCASE_HEX>
+    // The expected digest is HMAC-SHA512 over the raw request body, keyed by
+    // the Signature Key from the merchant portal.
+    //
+    // Returns:
+    //   true   — header present, signature matches
+    //   false  — header present, signature does NOT match (caller decides whether to block)
+    //   null   — signature key not configured OR header missing (cannot verify)
+    // ═════════════════════════════════════════════════════════════════════════
+    private function verifySignature(Request $request): ?bool
+    {
+        $signatureKey = (string) config('services.authorize_net.signature_key', '');
+        if ($signatureKey === '') {
+            Log::warning('Authorize.net signature key not configured — skipping signature verification');
+            return null;
+        }
+
+        $header = (string) $request->header('X-ANET-Signature', '');
+        if ($header === '') {
+            Log::warning('Authorize.net webhook missing X-ANET-Signature header', [
+                'ip' => $request->ip(),
+            ]);
+            return null;
+        }
+
+        // Header format: sha512=HEXDIGEST
+        $parts = explode('=', $header, 2);
+        if (count($parts) !== 2 || strtolower($parts[0]) !== 'sha512' || $parts[1] === '') {
+            Log::warning('Authorize.net signature header malformed', [
+                'header_prefix' => substr($header, 0, 16),
+            ]);
+            return false;
+        }
+
+        $provided = strtoupper($parts[1]);
+        $expected = strtoupper(hash_hmac('sha512', (string) $request->getContent(), $signatureKey));
+
+        return hash_equals($expected, $provided);
     }
 }

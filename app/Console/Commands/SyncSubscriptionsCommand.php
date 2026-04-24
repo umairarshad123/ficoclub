@@ -6,7 +6,10 @@ use App\Models\Subscription;
 use App\Models\SubscriptionEvent;
 use App\Services\AuthorizeNetService;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class SyncSubscriptionsCommand extends Command
 {
@@ -104,7 +107,9 @@ class SyncSubscriptionsCommand extends Command
 
     private function applyStatusChange(Subscription $sub, string $newStatus, array $payload): void
     {
-        DB::transaction(function () use ($sub, $newStatus, $payload) {
+        $transitionedToTerminated = false;
+
+        DB::transaction(function () use ($sub, $newStatus, $payload, &$transitionedToTerminated) {
             $old = $sub->status;
             $sub->status = $newStatus;
 
@@ -120,6 +125,94 @@ class SyncSubscriptionsCommand extends Command
                 'payload'         => $payload,
                 'note'            => sprintf('Sync job: %s -> %s', $old, $newStatus),
             ]);
+
+            if ($newStatus === 'terminated' && $old !== 'terminated') {
+                $transitionedToTerminated = true;
+            }
         });
+
+        if ($transitionedToTerminated) {
+            $this->fireGhlTerminationWebhook($sub->fresh(), $payload);
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Fire GHL termination webhook from the sync job.
+    //
+    // Mirrors the payload shape used by AuthorizeNetWebhookController and
+    // TerminateFailedSubscriptions so GHL sees identical fields regardless of
+    // which code path terminated the sub.
+    //
+    // Per-subscription 24h cache dedupe prevents double-firing in the rare race
+    // where both the webhook and the sync flip the same sub within the window.
+    // ─────────────────────────────────────────────────────────────────────────
+    private function fireGhlTerminationWebhook(Subscription $sub, array $payload): void
+    {
+        $url = config('services.ghl.subscription_terminated_webhook_url');
+
+        if (!$url) {
+            Log::warning('[SubsSync] GHL subscription_terminated_webhook_url not configured — skipping', [
+                'subscription_id' => $sub->id,
+            ]);
+            return;
+        }
+
+        $dedupeKey = 'ghl_terminated_fired_sub_' . $sub->id;
+        if (Cache::has($dedupeKey)) {
+            Log::info('[SubsSync] GHL termination webhook already fired recently — skipping duplicate', [
+                'subscription_id' => $sub->id,
+            ]);
+            return;
+        }
+
+        $body = [
+            'first_name'           => $sub->first_name,
+            'last_name'            => $sub->last_name,
+            'email'                => $sub->email,
+            'phone'                => $sub->phone,
+            'address'              => $sub->address,
+            'city'                 => $sub->city,
+            'state'                => $sub->state,
+            'zip'                  => $sub->zip,
+            'plan'                 => $sub->plan_label,
+            'plan_key'             => $sub->plan_key,
+            'recurring_amount'     => $sub->recurring_amount,
+            'invoice_number'       => $sub->invoice_number,
+            'arb_subscription_id'  => $sub->arb_subscription_id,
+            'failed_payment_count' => $sub->failed_payment_count,
+            'first_failed_at'      => optional($sub->first_failed_at)->toIso8601String(),
+            'grace_period_ends_at' => optional($sub->grace_period_ends_at)->toIso8601String(),
+            'terminated_at'        => optional($sub->terminated_at)->toIso8601String(),
+            'reason'               => 'sync_reconciliation',
+            'source'               => '850_fico_subscription_terminated',
+            'tags'                 => ['subscription-terminated', 'sync-reconciled'],
+        ];
+
+        Log::info('[SubsSync] Firing GHL SUBSCRIPTION_TERMINATED webhook', [
+            'subscription_id' => $sub->id,
+            'email'           => $sub->email,
+        ]);
+
+        try {
+            $response = Http::timeout(15)->post($url, $body);
+            $ok = $response->successful();
+            $ctx = [
+                'subscription_id' => $sub->id,
+                'status'          => $response->status(),
+                'body_preview'    => substr((string) $response->body(), 0, 500),
+            ];
+            if ($ok) {
+                Log::info('[SubsSync] GHL SUBSCRIPTION_TERMINATED webhook fired', $ctx);
+                Cache::put($dedupeKey, true, now()->addHours(24));
+            } else {
+                Log::error('[SubsSync] GHL SUBSCRIPTION_TERMINATED webhook returned non-success status', $ctx);
+            }
+        } catch (\Throwable $e) {
+            Log::error('[SubsSync] GHL SUBSCRIPTION_TERMINATED webhook failed', [
+                'subscription_id' => $sub->id,
+                'error'           => $e->getMessage(),
+                'exception'       => get_class($e),
+            ]);
+        }
     }
 }
