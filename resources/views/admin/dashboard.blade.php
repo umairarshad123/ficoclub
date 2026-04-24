@@ -139,14 +139,18 @@
     <div class="flex items-center justify-between mb-3">
       <h2 class="font-semibold text-ink">MRR Trend (12 Months)</h2>
     </div>
-    <canvas id="mrrChart" height="220"></canvas>
+    <div class="relative w-full" style="height: 280px; max-height: 400px;">
+      <canvas id="mrrChart"></canvas>
+    </div>
   </div>
 
   <div class="bg-white rounded-xl border border-gray-200 p-5">
     <div class="flex items-center justify-between mb-3">
       <h2 class="font-semibold text-ink">New Signups by Plan</h2>
     </div>
-    <canvas id="signupsChart" height="220"></canvas>
+    <div class="relative w-full" style="height: 280px; max-height: 400px;">
+      <canvas id="signupsChart"></canvas>
+    </div>
   </div>
 </div>
 

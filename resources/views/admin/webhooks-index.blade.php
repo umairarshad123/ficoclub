@@ -203,27 +203,30 @@
               <div class="text-[11px] text-gray-400">{{ $ev->received_at?->diffForHumans() }}</div>
             </td>
             <td class="py-3 px-5 text-right whitespace-nowrap">
+              @php
+                $modalData = [
+                    'id'              => $ev->id,
+                    'event_type'      => $ev->event_type,
+                    'description'     => $ev->description,
+                    'customer_name'   => $custName,
+                    'customer_email'  => $ev->customer_email,
+                    'amount'          => $ev->amount,
+                    'entity_id'       => $ev->entity_id,
+                    'invoice_number'  => $ev->invoice_number,
+                    'notification_id' => $ev->notification_id,
+                    'received_at'     => $ev->received_at?->format('M j, Y g:i:s A'),
+                    'source_ip'       => $ev->source_ip,
+                    'signature'       => $sigLabel,
+                    'status_label'    => $statusBg['label'],
+                    'response_code'   => $ev->response_code,
+                    'response_label'  => $ev->responseCodeLabel(),
+                    'arb_status'      => $ev->arb_status,
+                    'subscription_id' => $ev->matched_subscription_id,
+                    'payload'         => json_encode($ev->payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES),
+                ];
+              @endphp
               <button type="button"
-                      @click='current = @json([
-                          "id"             => $ev->id,
-                          "event_type"     => $ev->event_type,
-                          "description"    => $ev->description,
-                          "customer_name"  => $custName,
-                          "customer_email" => $ev->customer_email,
-                          "amount"         => $ev->amount,
-                          "entity_id"      => $ev->entity_id,
-                          "invoice_number" => $ev->invoice_number,
-                          "notification_id"=> $ev->notification_id,
-                          "received_at"    => $ev->received_at?->format("M j, Y g:i:s A"),
-                          "source_ip"      => $ev->source_ip,
-                          "signature"      => $sigLabel,
-                          "status_label"   => $statusBg["label"],
-                          "response_code"  => $ev->response_code,
-                          "response_label" => $ev->responseCodeLabel(),
-                          "arb_status"     => $ev->arb_status,
-                          "subscription_id"=> $ev->matched_subscription_id,
-                          "payload"        => json_encode($ev->payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES),
-                      ]); open = true'
+                      @click="current = {{ \Illuminate\Support\Js::from($modalData) }}; open = true"
                       class="text-xs px-3 py-1.5 rounded-md border border-gray-200 hover:bg-gray-50 text-gray-700 font-medium">
                 View Details
               </button>
