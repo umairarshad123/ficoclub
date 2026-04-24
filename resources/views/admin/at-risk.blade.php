@@ -46,6 +46,40 @@
   </div>
 </div>
 
+{{-- ─── Grace-period countdown buckets ─────────────────────────────────────── --}}
+@if (!empty($graceBuckets))
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+  <div class="bg-white rounded-xl border-2 {{ $graceBuckets['overdue']->count() > 0 ? 'border-red-400' : 'border-gray-200' }} p-4">
+    <div class="text-xs text-gray-500 uppercase tracking-wide">Overdue</div>
+    <div class="text-3xl font-bold mt-1 {{ $graceBuckets['overdue']->count() > 0 ? 'text-red-700' : 'text-gray-400' }}">
+      {{ $graceBuckets['overdue']->count() }}
+    </div>
+    <div class="text-xs text-gray-500 mt-1">grace already ended</div>
+  </div>
+  <div class="bg-white rounded-xl border-2 {{ $graceBuckets['next_24h']->count() > 0 ? 'border-red-400' : 'border-gray-200' }} p-4">
+    <div class="text-xs text-gray-500 uppercase tracking-wide">Next 24h</div>
+    <div class="text-3xl font-bold mt-1 {{ $graceBuckets['next_24h']->count() > 0 ? 'text-red-700' : 'text-gray-400' }}">
+      {{ $graceBuckets['next_24h']->count() }}
+    </div>
+    <div class="text-xs text-gray-500 mt-1">grace ends today/tomorrow</div>
+  </div>
+  <div class="bg-white rounded-xl border-2 {{ $graceBuckets['next_48h']->count() > 0 ? 'border-orange-400' : 'border-gray-200' }} p-4">
+    <div class="text-xs text-gray-500 uppercase tracking-wide">24–48h</div>
+    <div class="text-3xl font-bold mt-1 {{ $graceBuckets['next_48h']->count() > 0 ? 'text-orange-700' : 'text-gray-400' }}">
+      {{ $graceBuckets['next_48h']->count() }}
+    </div>
+    <div class="text-xs text-gray-500 mt-1">grace ends within 2 days</div>
+  </div>
+  <div class="bg-white rounded-xl border-2 {{ $graceBuckets['next_7d']->count() > 0 ? 'border-amber-400' : 'border-gray-200' }} p-4">
+    <div class="text-xs text-gray-500 uppercase tracking-wide">3–7 days</div>
+    <div class="text-3xl font-bold mt-1 {{ $graceBuckets['next_7d']->count() > 0 ? 'text-amber-700' : 'text-gray-400' }}">
+      {{ $graceBuckets['next_7d']->count() }}
+    </div>
+    <div class="text-xs text-gray-500 mt-1">grace ends this week</div>
+  </div>
+</div>
+@endif
+
 {{-- ─── At-Risk Table ──────────────────────────────────────────────────────── --}}
 <div class="bg-white rounded-xl border border-gray-200 overflow-hidden mb-6">
   <div class="px-5 py-3 border-b border-gray-200 flex items-center justify-between">

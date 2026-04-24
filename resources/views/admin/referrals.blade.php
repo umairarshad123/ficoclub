@@ -15,6 +15,39 @@
   </div>
 </div>
 
+{{-- ─── Plan Mix ───────────────────────────────────────────────────────────── --}}
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden mb-6">
+  <div class="px-5 py-3 border-b border-gray-200">
+    <h2 class="font-semibold text-ink">MRR + Churn by Plan</h2>
+  </div>
+  <table class="w-full text-sm">
+    <thead class="text-xs uppercase text-gray-500 bg-gray-50 border-b border-gray-200">
+      <tr>
+        <th class="text-left py-3 px-5 font-medium">Plan</th>
+        <th class="text-right py-3 px-3 font-medium">Total Signups</th>
+        <th class="text-right py-3 px-3 font-medium">Active</th>
+        <th class="text-right py-3 px-3 font-medium">Past Due</th>
+        <th class="text-right py-3 px-3 font-medium">Cancelled</th>
+        <th class="text-right py-3 px-3 font-medium">Churn %</th>
+        <th class="text-right py-3 px-5 font-medium">MRR</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100">
+      @foreach ($planMix as $p)
+        <tr class="hover:bg-gray-50">
+          <td class="py-3 px-5 font-medium">{{ $p['label'] }}</td>
+          <td class="py-3 px-3 text-right">{{ number_format($p['total']) }}</td>
+          <td class="py-3 px-3 text-right text-green-700">{{ number_format($p['active']) }}</td>
+          <td class="py-3 px-3 text-right text-amber-700">{{ number_format($p['past_due']) }}</td>
+          <td class="py-3 px-3 text-right text-red-700">{{ number_format($p['cancelled']) }}</td>
+          <td class="py-3 px-3 text-right text-gray-700">{{ $p['churn_pct'] }}%</td>
+          <td class="py-3 px-5 text-right font-semibold">${{ number_format($p['mrr'], 0) }}</td>
+        </tr>
+      @endforeach
+    </tbody>
+  </table>
+</div>
+
 <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
   <div class="px-5 py-3 border-b border-gray-200">
     <h2 class="font-semibold text-ink">Full Breakdown</h2>

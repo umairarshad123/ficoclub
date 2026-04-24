@@ -53,7 +53,47 @@ class Subscription extends Model
         return $this->hasMany(SubscriptionEvent::class);
     }
 
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class);
+    }
+
     // ── Helpers ──────────────────────────────────────────────────────────────
+
+    /**
+     * Total cash collected for this subscription, net of refunds/voids.
+     * Falls back to the initial charge amount if the payments table is empty
+     * (e.g. legacy rows that predate the payments hydration).
+     */
+    public function lifetimeRevenue(): float
+    {
+        $fromPayments = (float) $this->payments()
+            ->whereIn('type', ['initial', 'recurring'])
+            ->whereIn('status', ['captured'])
+            ->sum('amount');
+
+        $refunded = (float) $this->payments()
+            ->whereIn('type', ['refund', 'void'])
+            ->sum('amount');
+
+        $net = $fromPayments - $refunded;
+
+        if ($fromPayments === 0.0) {
+            // No hydrated payments yet — fall back to the known initial charge
+            return (float) ($this->amount ?? 0);
+        }
+
+        return $net;
+    }
+
+    public function paymentsCount(): int
+    {
+        return (int) $this->payments()
+            ->whereIn('type', ['initial', 'recurring'])
+            ->where('status', 'captured')
+            ->count();
+    }
+
 
     public function isActive(): bool
     {

@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Lead;
+use App\Models\Payment;
 use App\Models\Subscription;
 use App\Models\SubscriptionEvent;
+use App\Models\WebhookEvent;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -33,6 +35,13 @@ class DashboardController extends Controller
             'atRiskPreview'     => Subscription::where('status', 'past_due')
                                     ->orderBy('grace_period_ends_at')
                                     ->limit(5)
+                                    ->get(),
+            'health'            => $this->buildOperationalHealth(),
+            'planMix'           => $this->buildPlanMix(),
+            'recentPayments'    => Payment::with('subscription:id,first_name,last_name,email')
+                                    ->whereIn('type', ['initial', 'recurring', 'refund', 'void'])
+                                    ->orderByDesc('charged_at')
+                                    ->limit(10)
                                     ->get(),
         ]);
     }
@@ -86,9 +95,16 @@ class DashboardController extends Controller
 
     public function subscriptionShow(int $id)
     {
-        $sub = Subscription::with(['events' => fn ($q) => $q->orderByDesc('created_at')])
-                  ->findOrFail($id);
-        return view('admin.subscription-show', ['sub' => $sub]);
+        $sub = Subscription::with([
+                'events'   => fn ($q) => $q->orderByDesc('created_at'),
+                'payments' => fn ($q) => $q->orderByDesc('charged_at'),
+            ])->findOrFail($id);
+
+        return view('admin.subscription-show', [
+            'sub'             => $sub,
+            'lifetimeRevenue' => $sub->lifetimeRevenue(),
+            'paymentsCount'   => $sub->paymentsCount(),
+        ]);
     }
 
     // ═════════════════════════════════════════════════════════════════════════
@@ -213,6 +229,7 @@ class DashboardController extends Controller
             'recentlyTerminated' => $recentlyTerminated,
             'atRiskMrr'          => $atRiskMrr,
             'lostMrr'            => $lostMrr,
+            'graceBuckets'       => $this->buildGracePeriodBuckets(),
         ]);
     }
 
@@ -223,6 +240,7 @@ class DashboardController extends Controller
     {
         return view('admin.referrals', [
             'breakdown' => $this->buildReferralBreakdown(),
+            'planMix'   => $this->buildPlanMix(),
         ]);
     }
 
@@ -341,6 +359,8 @@ class DashboardController extends Controller
         $now         = Carbon::now();
         $monthStart  = $now->copy()->startOfMonth();
         $monthEnd    = $now->copy()->endOfMonth();
+        $prevStart   = $monthStart->copy()->subMonth();
+        $prevEnd     = $prevStart->copy()->endOfMonth();
 
         $totalCustomers = Subscription::count();
         $activeCount    = Subscription::where('status', 'active')->count();
@@ -364,6 +384,56 @@ class DashboardController extends Controller
                     ->where('grace_period_ends_at', '>', $now)
                     ->count();
 
+        // ── Cash collected (initial + recurring, net of refunds/voids) ────────
+        $revenueThisMonth  = $this->revenueCollectedBetween($monthStart, $monthEnd);
+        $revenueLastMonth  = $this->revenueCollectedBetween($prevStart, $prevEnd);
+        $revenueDeltaPct   = $revenueLastMonth > 0
+            ? round((($revenueThisMonth - $revenueLastMonth) / $revenueLastMonth) * 100, 1)
+            : null;
+
+        // ── Net new MRR this month ────────────────────────────────────────────
+        $mrrAdded = (float) Subscription::whereBetween('created_at', [$monthStart, $monthEnd])
+                        ->sum('recurring_amount');
+        $mrrLost  = (float) Subscription::whereIn('status', self::CANCELLED_STATUSES)
+                        ->whereBetween('terminated_at', [$monthStart, $monthEnd])
+                        ->sum('recurring_amount');
+        $netNewMrr = $mrrAdded - $mrrLost;
+
+        // ── Churn % for current month ─────────────────────────────────────────
+        // Denominator: subs that were active at the start of the month.
+        $activeAtMonthStart = Subscription::where('created_at', '<', $monthStart)
+            ->where(function ($q) use ($monthStart) {
+                $q->whereNull('terminated_at')
+                  ->orWhere('terminated_at', '>=', $monthStart);
+            })->count();
+        $terminatedThisMonth = Subscription::whereIn('status', self::CANCELLED_STATUSES)
+            ->whereBetween('terminated_at', [$monthStart, $monthEnd])
+            ->count();
+        $churnPct = $activeAtMonthStart > 0
+            ? round(($terminatedThisMonth / $activeAtMonthStart) * 100, 1)
+            : 0.0;
+
+        // ── Recovery rate (rolling 30d) ───────────────────────────────────────
+        $thirtyDaysAgo   = $now->copy()->subDays(30);
+        $failedCount30d  = SubscriptionEvent::where('event_type', 'payment_failed')
+                            ->where('created_at', '>=', $thirtyDaysAgo)->count();
+        $recoveredCount30d = SubscriptionEvent::where('event_type', 'payment_recovered')
+                            ->where('created_at', '>=', $thirtyDaysAgo)->count();
+        $recoveryRate = $failedCount30d > 0
+            ? round(($recoveredCount30d / $failedCount30d) * 100, 1)
+            : null;
+
+        // ── ARPU ──────────────────────────────────────────────────────────────
+        $arpu = $activeCount > 0 ? round($mrr / $activeCount, 2) : 0.0;
+
+        // ── Avg subscription lifetime (completed subs only) ───────────────────
+        $avgLifetimeDays = (float) Subscription::whereIn('status', self::CANCELLED_STATUSES)
+            ->whereNotNull('terminated_at')
+            ->whereNotNull('subscribed_at')
+            ->selectRaw('AVG(TIMESTAMPDIFF(DAY, subscribed_at, terminated_at)) as avg_days')
+            ->value('avg_days');
+        $avgLifetimeDays = $avgLifetimeDays ? round($avgLifetimeDays, 1) : 0.0;
+
         return [
             'total_customers'       => $totalCustomers,
             'active'                => $activeCount,
@@ -375,6 +445,142 @@ class DashboardController extends Controller
             'new_subs_this_month'   => $newSubsThisMonth,
             'total_leads'           => $totalLeads,
             'conversion_pct'        => $conversionPct,
+
+            // New KPIs
+            'revenue_this_month' => $revenueThisMonth,
+            'revenue_last_month' => $revenueLastMonth,
+            'revenue_delta_pct'  => $revenueDeltaPct,
+            'mrr_added'          => $mrrAdded,
+            'mrr_lost'           => $mrrLost,
+            'net_new_mrr'        => $netNewMrr,
+            'churn_pct'          => $churnPct,
+            'recovery_rate'      => $recoveryRate,
+            'arpu'               => $arpu,
+            'avg_lifetime_days'  => $avgLifetimeDays,
+        ];
+    }
+
+    /**
+     * Sum of captured payments (initial + recurring) minus refund/void payments,
+     * all within a single window. Pulls from the payments table.
+     */
+    private function revenueCollectedBetween(Carbon $start, Carbon $end): float
+    {
+        $captured = (float) Payment::whereBetween('charged_at', [$start, $end])
+            ->whereIn('type', ['initial', 'recurring'])
+            ->where('status', 'captured')
+            ->sum('amount');
+
+        $refunded = (float) Payment::whereBetween('charged_at', [$start, $end])
+            ->whereIn('type', ['refund', 'void'])
+            ->sum('amount');
+
+        return max(0.0, $captured - $refunded);
+    }
+
+    /**
+     * Operational health signals for the automation itself.
+     * Dashboard widget + sanity check for the payment ops team.
+     */
+    private function buildOperationalHealth(): array
+    {
+        $now       = Carbon::now();
+        $dayStart  = $now->copy()->startOfDay();
+        $hourAgo   = $now->copy()->subHour();
+
+        $lastWebhookAt = WebhookEvent::max('received_at');
+        $lastWebhookAt = $lastWebhookAt ? Carbon::parse($lastWebhookAt) : null;
+
+        $byTypeToday = WebhookEvent::whereBetween('received_at', [$dayStart, $now])
+            ->select('event_type', DB::raw('COUNT(*) as cnt'))
+            ->groupBy('event_type')
+            ->pluck('cnt', 'event_type')
+            ->toArray();
+
+        $totalWebhooksToday = array_sum($byTypeToday);
+        $totalWebhooksLastHour = WebhookEvent::whereBetween('received_at', [$hourAgo, $now])->count();
+
+        $sigOkToday     = WebhookEvent::whereBetween('received_at', [$dayStart, $now])
+                            ->where('signature_valid', true)->count();
+        $sigInvalidToday = WebhookEvent::whereBetween('received_at', [$dayStart, $now])
+                            ->where('signature_valid', false)->count();
+        $sigUnverifiedToday = WebhookEvent::whereBetween('received_at', [$dayStart, $now])
+                            ->whereNull('signature_valid')->count();
+
+        // Scheduler heartbeats — file mtime on the log files
+        $syncLog      = storage_path('logs/subs-sync.log');
+        $terminateLog = storage_path('logs/subs-terminate.log');
+        $lastSyncAt      = file_exists($syncLog)      ? Carbon::createFromTimestamp(filemtime($syncLog))      : null;
+        $lastTerminateAt = file_exists($terminateLog) ? Carbon::createFromTimestamp(filemtime($terminateLog)) : null;
+
+        return [
+            'last_webhook_at'        => $lastWebhookAt,
+            'webhooks_today_total'   => $totalWebhooksToday,
+            'webhooks_last_hour'     => $totalWebhooksLastHour,
+            'webhooks_today_by_type' => $byTypeToday,
+            'signature_ok_today'        => $sigOkToday,
+            'signature_invalid_today'   => $sigInvalidToday,
+            'signature_unverified_today'=> $sigUnverifiedToday,
+            'enforce_signature'      => (bool) config('services.authorize_net.webhook_enforce_signature', false),
+            'last_sync_at'           => $lastSyncAt,
+            'last_terminate_at'      => $lastTerminateAt,
+        ];
+    }
+
+    /**
+     * MRR + churn + customer count broken out by plan_key.
+     */
+    private function buildPlanMix(): array
+    {
+        $plans = ['silver', 'gold', 'platinum'];
+        $out = [];
+        foreach ($plans as $key) {
+            $label = ucfirst($key);
+            $active    = Subscription::where('plan_key', $key)->where('status', 'active')->count();
+            $pastDue   = Subscription::where('plan_key', $key)->where('status', 'past_due')->count();
+            $cancelled = Subscription::where('plan_key', $key)->whereIn('status', self::CANCELLED_STATUSES)->count();
+            $total     = $active + $pastDue + $cancelled;
+            $mrr       = (float) Subscription::where('plan_key', $key)
+                             ->whereIn('status', self::MRR_STATUSES)
+                             ->sum('recurring_amount');
+            $churnPct  = $total > 0 ? round(($cancelled / $total) * 100, 1) : 0.0;
+
+            $out[] = [
+                'key'       => $key,
+                'label'     => $label,
+                'active'    => $active,
+                'past_due'  => $pastDue,
+                'cancelled' => $cancelled,
+                'total'     => $total,
+                'mrr'       => $mrr,
+                'churn_pct' => $churnPct,
+            ];
+        }
+        return $out;
+    }
+
+    /**
+     * Grace-period countdown buckets for the At-Risk page.
+     */
+    private function buildGracePeriodBuckets(): array
+    {
+        $now = Carbon::now();
+        $bucket = fn ($from, $to) => Subscription::where('status', 'past_due')
+            ->whereNotNull('grace_period_ends_at')
+            ->where('grace_period_ends_at', '>', $from)
+            ->where('grace_period_ends_at', '<=', $to)
+            ->orderBy('grace_period_ends_at')
+            ->get();
+
+        return [
+            'next_24h' => $bucket($now, $now->copy()->addDay()),
+            'next_48h' => $bucket($now->copy()->addDay(), $now->copy()->addDays(2)),
+            'next_7d'  => $bucket($now->copy()->addDays(2), $now->copy()->addDays(7)),
+            'overdue'  => Subscription::where('status', 'past_due')
+                ->whereNotNull('grace_period_ends_at')
+                ->where('grace_period_ends_at', '<=', $now)
+                ->orderBy('grace_period_ends_at')
+                ->get(),
         ];
     }
 

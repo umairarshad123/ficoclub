@@ -46,6 +46,26 @@
           <div class="font-medium">${{ number_format($sub->recurring_amount, 2) }} / mo</div>
         </div>
         <div>
+          <div class="text-xs text-gray-500 uppercase">Lifetime Revenue</div>
+          <div class="font-medium text-green-700">${{ number_format($lifetimeRevenue, 2) }}</div>
+          <div class="text-xs text-gray-500">{{ $paymentsCount }} {{ \Illuminate\Support\Str::plural('payment', $paymentsCount) }} captured</div>
+        </div>
+        <div>
+          <div class="text-xs text-gray-500 uppercase">Days Until Next Billing</div>
+          @php
+            $nb = $sub->next_billing_date;
+            $daysUntil = $nb ? max(0, now()->diffInDays($nb, false)) : null;
+          @endphp
+          <div class="font-medium">
+            @if ($nb && $sub->status === 'active')
+              {{ $daysUntil }} {{ \Illuminate\Support\Str::plural('day', $daysUntil) }}
+              <span class="text-xs text-gray-500">({{ $nb->format('M j, Y') }})</span>
+            @else
+              <span class="text-gray-400">—</span>
+            @endif
+          </div>
+        </div>
+        <div>
           <div class="text-xs text-gray-500 uppercase">Signed Up</div>
           <div class="font-medium">{{ optional($sub->subscribed_at ?? $sub->created_at)->format('M j, Y g:i A') }}</div>
         </div>
@@ -66,6 +86,72 @@
           </div>
         @endif
       </div>
+    </div>
+
+    {{-- ─── Payments timeline ───────────────────────────────────────────────── --}}
+    <div class="bg-white rounded-xl border border-gray-200 p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-semibold text-ink">Payments</h3>
+        <span class="text-xs text-gray-500">{{ $sub->payments->count() }} {{ \Illuminate\Support\Str::plural('record', $sub->payments->count()) }}</span>
+      </div>
+
+      @if ($sub->payments->isEmpty())
+        <div class="text-sm text-gray-400">
+          No payment rows recorded.
+          <div class="text-xs text-gray-400 mt-1">
+            Rows appear here automatically from Auth.net webhooks. For legacy subs, run <code class="font-mono bg-gray-100 px-1 rounded">php artisan payments:backfill</code>.
+          </div>
+        </div>
+      @else
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead class="text-xs uppercase text-gray-500 border-b border-gray-200">
+              <tr>
+                <th class="text-left py-2 pr-3 font-medium">When</th>
+                <th class="text-left py-2 pr-3 font-medium">Type</th>
+                <th class="text-left py-2 pr-3 font-medium">Status</th>
+                <th class="text-right py-2 pr-3 font-medium">Amount</th>
+                <th class="text-left py-2 font-medium">Txn ID</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+              @foreach ($sub->payments as $pay)
+                @php
+                  $isNeg = in_array($pay->type, ['refund', 'void'], true);
+                  $typeCls = match($pay->type) {
+                    'initial'   => 'bg-slate-100 text-slate-700',
+                    'recurring' => 'bg-green-100 text-green-800',
+                    'refund'    => 'bg-red-100 text-red-800',
+                    'void'      => 'bg-gray-200 text-gray-700',
+                    default     => 'bg-gray-100 text-gray-700',
+                  };
+                  $statusCls = match($pay->status) {
+                    'captured' => 'text-green-700',
+                    'refunded' => 'text-red-700',
+                    'voided'   => 'text-gray-500',
+                    'failed'   => 'text-red-700',
+                    default    => 'text-gray-700',
+                  };
+                @endphp
+                <tr class="hover:bg-gray-50">
+                  <td class="py-2.5 pr-3 text-xs text-gray-600">
+                    {{ $pay->charged_at?->format('M j, Y') ?? '—' }}
+                    <div class="text-[11px] text-gray-400">{{ $pay->charged_at?->format('g:i A') }}</div>
+                  </td>
+                  <td class="py-2.5 pr-3">
+                    <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-semibold {{ $typeCls }}">{{ ucfirst($pay->type) }}</span>
+                  </td>
+                  <td class="py-2.5 pr-3 text-xs font-medium {{ $statusCls }}">{{ ucfirst($pay->status) }}</td>
+                  <td class="py-2.5 pr-3 text-right font-semibold {{ $isNeg ? 'text-red-700' : 'text-ink' }}">
+                    {{ $isNeg ? '-' : '' }}${{ number_format($pay->amount, 2) }}
+                  </td>
+                  <td class="py-2.5 font-mono text-[11px] text-gray-500">{{ $pay->transaction_id ?: '—' }}</td>
+                </tr>
+              @endforeach
+            </tbody>
+          </table>
+        </div>
+      @endif
     </div>
 
     {{-- Address + Auth.net IDs --}}

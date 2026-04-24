@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Payment;
 use App\Models\Subscription;
 use App\Models\SubscriptionEvent;
+use App\Models\WebhookEvent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -41,6 +43,8 @@ class AuthorizeNetWebhookController extends Controller
     // ── Event type constants (no typos possible) ────────────────────────────
     private const EVT_PAYMENT_SUCCESS  = 'net.authorize.payment.authcapture.created';
     private const EVT_PAYMENT_FRAUD    = 'net.authorize.payment.fraud.declined';
+    private const EVT_PAYMENT_REFUND   = 'net.authorize.payment.refund.created';
+    private const EVT_PAYMENT_VOID     = 'net.authorize.payment.void.created';
 
     private const EVT_SUB_CREATED      = 'net.authorize.customer.subscription.created';
     private const EVT_SUB_UPDATED      = 'net.authorize.customer.subscription.updated';
@@ -122,6 +126,21 @@ class AuthorizeNetWebhookController extends Controller
             'arb_status'      => $arbStatus,
         ]);
 
+        // ── Persist webhook_events row (audit + dashboard heartbeat) ─────────
+        // Never throws — if the insert fails we still want to process the event.
+        $webhookEvent = $this->persistWebhookEvent([
+            'notification_id' => $notificationId,
+            'event_type'      => (string) ($eventType ?? 'unknown'),
+            'entity_id'       => $entityId ? (string) $entityId : null,
+            'amount'          => is_numeric($amount) ? (float) $amount : null,
+            'invoice_number'  => $invoiceNumber,
+            'arb_status'      => $arbStatus,
+            'signature_valid' => $sigResult,
+            'source_ip'       => $request->ip(),
+            'received_at'     => now(),
+            'payload'         => $payload,
+        ]);
+
         // ── Idempotency: dedupe by notificationId (24h window) ──────────────
         if ($notificationId) {
             $dedupeKey = 'authnet_notif_' . $notificationId;
@@ -139,7 +158,7 @@ class AuthorizeNetWebhookController extends Controller
         // ROUTE: Successful payment (initial OR recurring renewal)
         // ═════════════════════════════════════════════════════════════════════
         if ($eventType === self::EVT_PAYMENT_SUCCESS) {
-            return $this->handlePaymentSuccess($invoiceNumber, $entityId, $amount, $payload);
+            return $this->handlePaymentSuccess($invoiceNumber, $entityId, $amount, $payload, $webhookEvent);
         }
 
         // ═════════════════════════════════════════════════════════════════════
@@ -161,6 +180,13 @@ class AuthorizeNetWebhookController extends Controller
         // ═════════════════════════════════════════════════════════════════════
         if ($eventType === self::EVT_SUB_UPDATED) {
             return $this->handleSubscriptionUpdate($entityId, $arbStatus, $payload);
+        }
+
+        // ═════════════════════════════════════════════════════════════════════
+        // ROUTE: Refund / Void → persist negative-effect payment row
+        // ═════════════════════════════════════════════════════════════════════
+        if ($eventType === self::EVT_PAYMENT_REFUND || $eventType === self::EVT_PAYMENT_VOID) {
+            return $this->handleRefundOrVoid($eventType, $entityId, $amount, $invoiceNumber, $payload, $webhookEvent);
         }
 
         // ═════════════════════════════════════════════════════════════════════
@@ -192,7 +218,7 @@ class AuthorizeNetWebhookController extends Controller
     //   A) Initial charge — invoice is in our cache → fire GHL main/referral webhook
     //   B) Recurring charge — invoice is NOT in cache → auto-recover past_due sub + log event
     // ═════════════════════════════════════════════════════════════════════════
-    private function handlePaymentSuccess(?string $invoiceNumber, ?string $transactionId, $amount, array $payload)
+    private function handlePaymentSuccess(?string $invoiceNumber, ?string $transactionId, $amount, array $payload, ?WebhookEvent $webhookEvent = null)
     {
         if (!$invoiceNumber) {
             Log::warning('authcapture without invoice number, ignoring');
@@ -206,6 +232,19 @@ class AuthorizeNetWebhookController extends Controller
 
         if ($cachedCustomer) {
             // ── Sub-case A: INITIAL CHARGE flow ──────────────────────────────
+            // Persist the initial payment too (best-effort).
+            $this->persistPayment([
+                'subscription_id' => Subscription::where('invoice_number', $invoiceNumber)->value('id'),
+                'transaction_id'  => $transactionId,
+                'invoice_number'  => $invoiceNumber,
+                'amount'          => (float) ($amount ?? 0),
+                'type'            => 'initial',
+                'status'          => 'captured',
+                'event_type_raw'  => self::EVT_PAYMENT_SUCCESS,
+                'charged_at'      => now(),
+                'raw_payload'     => $payload,
+            ], $webhookEvent);
+
             return $this->fireInitialChargeWebhooks($invoiceNumber, $transactionId, $cachedCustomer);
         }
 
@@ -229,8 +268,35 @@ class AuthorizeNetWebhookController extends Controller
                 'invoice_number' => $invoiceNumber,
                 'transaction_id' => $transactionId,
             ]);
+
+            // Still persist the payment (unlinked) so dashboard totals are accurate.
+            $this->persistPayment([
+                'subscription_id' => null,
+                'transaction_id'  => $transactionId,
+                'invoice_number'  => $invoiceNumber,
+                'amount'          => (float) ($amount ?? 0),
+                'type'            => 'recurring',
+                'status'          => 'captured',
+                'event_type_raw'  => self::EVT_PAYMENT_SUCCESS,
+                'charged_at'      => now(),
+                'raw_payload'     => $payload,
+            ], $webhookEvent);
+
             return response('Event received', 200);
         }
+
+        // Persist the recurring payment.
+        $this->persistPayment([
+            'subscription_id' => $subscription->id,
+            'transaction_id'  => $transactionId,
+            'invoice_number'  => $invoiceNumber,
+            'amount'          => (float) ($amount ?? 0),
+            'type'            => 'recurring',
+            'status'          => 'captured',
+            'event_type_raw'  => self::EVT_PAYMENT_SUCCESS,
+            'charged_at'      => now(),
+            'raw_payload'     => $payload,
+        ], $webhookEvent);
 
         // Log the successful recurring charge
         SubscriptionEvent::create([
@@ -575,6 +641,141 @@ class AuthorizeNetWebhookController extends Controller
                 'exception' => get_class($e),
             ]);
             return false;
+        }
+    }
+
+    // ═════════════════════════════════════════════════════════════════════════
+    // HANDLER: Refund or Void → persist a negative-effect payment row
+    //
+    // Auth.net events:
+    //   net.authorize.payment.refund.created  — merchant issued a refund
+    //   net.authorize.payment.void.created    — merchant voided an auth before settlement
+    //
+    // We store the row with type=refund|void, status=refunded|voided and a POSITIVE
+    // amount. Downstream revenue aggregates (Payment::signedAmount,
+    // Subscription::lifetimeRevenue) treat refund/void as negative.
+    //
+    // Subscription status is NOT automatically flipped here — a refund does not
+    // necessarily end the subscription, and a void usually happens before a sub
+    // even exists. If the refund terminates service, Auth.net will also send a
+    // subscription.cancelled event which is handled separately.
+    // ═════════════════════════════════════════════════════════════════════════
+    private function handleRefundOrVoid(string $eventType, ?string $transactionId, $amount, ?string $invoiceNumber, array $payload, ?WebhookEvent $webhookEvent = null)
+    {
+        $type   = $eventType === self::EVT_PAYMENT_REFUND ? 'refund' : 'void';
+        $status = $eventType === self::EVT_PAYMENT_REFUND ? 'refunded' : 'voided';
+
+        $subscription = null;
+        if ($invoiceNumber) {
+            $subscription = Subscription::where('invoice_number', $invoiceNumber)->first();
+        }
+        if (!$subscription && $transactionId) {
+            // Try to match back through the original captured payment's transaction
+            $priorPayment = Payment::where('transaction_id', $transactionId)
+                ->whereIn('type', ['initial', 'recurring'])
+                ->first();
+            if ($priorPayment) {
+                $subscription = $priorPayment->subscription;
+            }
+        }
+
+        $this->persistPayment([
+            'subscription_id' => optional($subscription)->id,
+            'transaction_id'  => $transactionId,
+            'invoice_number'  => $invoiceNumber,
+            'amount'          => abs((float) ($amount ?? 0)),
+            'type'            => $type,
+            'status'          => $status,
+            'event_type_raw'  => $eventType,
+            'charged_at'      => now(),
+            'raw_payload'     => $payload,
+        ], $webhookEvent);
+
+        if ($subscription) {
+            SubscriptionEvent::create([
+                'subscription_id' => $subscription->id,
+                'event_type'      => 'manual_note',
+                'payload'         => $payload,
+                'note'            => sprintf(
+                    '%s recorded. Txn %s, Amount $%s',
+                    ucfirst($type),
+                    $transactionId ?? 'unknown',
+                    $amount ?? '0'
+                ),
+            ]);
+        }
+
+        Log::info('Auth.net ' . $type . ' event recorded', [
+            'event_type'     => $eventType,
+            'transaction_id' => $transactionId,
+            'invoice_number' => $invoiceNumber,
+            'amount'         => $amount,
+            'subscription_id'=> optional($subscription)->id,
+        ]);
+
+        return response('Event received', 200);
+    }
+
+    // ═════════════════════════════════════════════════════════════════════════
+    // Persist a row in webhook_events. Best-effort — never throws.
+    // ═════════════════════════════════════════════════════════════════════════
+    private function persistWebhookEvent(array $attrs): ?WebhookEvent
+    {
+        try {
+            // Resolve matched_subscription_id if we can
+            $matchedId = null;
+            if (!empty($attrs['entity_id'])) {
+                // Most failure/termination events reference the ARB sub id
+                $matchedId = Subscription::where('arb_subscription_id', $attrs['entity_id'])->value('id');
+            }
+            if (!$matchedId && !empty($attrs['invoice_number'])) {
+                $matchedId = Subscription::where('invoice_number', $attrs['invoice_number'])->value('id');
+            }
+            $attrs['matched_subscription_id'] = $matchedId;
+
+            // Idempotent insert on notification_id when present; without notification_id,
+            // we always insert (forged / test traffic).
+            if (!empty($attrs['notification_id'])) {
+                return WebhookEvent::updateOrCreate(
+                    ['notification_id' => $attrs['notification_id']],
+                    $attrs
+                );
+            }
+            return WebhookEvent::create($attrs);
+        } catch (\Throwable $e) {
+            Log::error('Failed to persist webhook_events row', [
+                'error'           => $e->getMessage(),
+                'event_type'      => $attrs['event_type'] ?? null,
+                'notification_id' => $attrs['notification_id'] ?? null,
+            ]);
+            return null;
+        }
+    }
+
+    // ═════════════════════════════════════════════════════════════════════════
+    // Persist a row in payments. Best-effort — never throws, idempotent on
+    // (transaction_id + type) so duplicate webhooks don't double-book revenue.
+    // ═════════════════════════════════════════════════════════════════════════
+    private function persistPayment(array $attrs, ?WebhookEvent $webhookEvent = null): ?Payment
+    {
+        try {
+            if (!empty($attrs['transaction_id'])) {
+                return Payment::updateOrCreate(
+                    [
+                        'transaction_id' => $attrs['transaction_id'],
+                        'type'           => $attrs['type'],
+                    ],
+                    $attrs
+                );
+            }
+            return Payment::create($attrs);
+        } catch (\Throwable $e) {
+            Log::error('Failed to persist payments row', [
+                'error'          => $e->getMessage(),
+                'transaction_id' => $attrs['transaction_id'] ?? null,
+                'type'           => $attrs['type'] ?? null,
+            ]);
+            return null;
         }
     }
 

@@ -12,11 +12,101 @@
   <x-kpi label="At Risk" :value="number_format($kpis['at_risk'])" sub="in grace period" :tone="$kpis['at_risk'] > 0 ? 'amber' : 'slate'" />
 </div>
 
-<div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
   <x-kpi label="Past Due" :value="number_format($kpis['past_due'])" sub="failed payments" tone="amber" />
   <x-kpi label="Cancelled" :value="number_format($kpis['cancelled'])" sub="terminated subs" tone="red" />
   <x-kpi label="New This Month" :value="number_format($kpis['new_subs_this_month'])" :sub="'$' . number_format($kpis['month_initial_revenue'], 0) . ' initial revenue'" tone="slate" />
   <x-kpi label="Lead Conversion" :value="$kpis['conversion_pct'] . '%'" :sub="number_format($kpis['total_leads']) . ' total leads'" tone="slate" />
+</div>
+
+{{-- ─── Revenue + MRR movement row ─────────────────────────────────────────── --}}
+@php
+  $deltaPct   = $kpis['revenue_delta_pct'];
+  $deltaLabel = $deltaPct === null
+      ? 'no comparable last month'
+      : ($deltaPct >= 0 ? '+' . $deltaPct . '% vs last month' : $deltaPct . '% vs last month');
+  $revTone = $deltaPct === null ? 'slate' : ($deltaPct >= 0 ? 'green' : 'red');
+  $netMrrTone = $kpis['net_new_mrr'] >= 0 ? 'green' : 'red';
+  $netMrrLabel = ($kpis['net_new_mrr'] >= 0 ? '+' : '') . '$' . number_format($kpis['net_new_mrr'], 0);
+  $churnTone  = $kpis['churn_pct'] >= 5 ? 'red' : ($kpis['churn_pct'] >= 2 ? 'amber' : 'green');
+  $recovLabel = $kpis['recovery_rate'] === null ? 'no failures' : $kpis['recovery_rate'] . '%';
+  $recovTone  = $kpis['recovery_rate'] === null ? 'slate' : ($kpis['recovery_rate'] >= 50 ? 'green' : 'amber');
+@endphp
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+  <x-kpi label="Cash This Month" :value="'$' . number_format($kpis['revenue_this_month'], 0)" :sub="$deltaLabel" :tone="$revTone" />
+  <x-kpi label="Net New MRR" :value="$netMrrLabel" :sub="'+$' . number_format($kpis['mrr_added'], 0) . ' / -$' . number_format($kpis['mrr_lost'], 0)" :tone="$netMrrTone" />
+  <x-kpi label="Churn (this month)" :value="$kpis['churn_pct'] . '%'" sub="monthly attrition" :tone="$churnTone" />
+  <x-kpi label="Recovery Rate (30d)" :value="$recovLabel" sub="past_due → active" :tone="$recovTone" />
+</div>
+
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+  <x-kpi label="ARPU" :value="'$' . number_format($kpis['arpu'], 0)" sub="avg / active customer" tone="slate" />
+  <x-kpi label="Avg Lifetime" :value="number_format($kpis['avg_lifetime_days'], 0) . ' days'" sub="for churned subs" tone="slate" />
+  <x-kpi label="Cash Last Month" :value="'$' . number_format($kpis['revenue_last_month'], 0)" sub="initial + recurring − refunds" tone="slate" />
+  <x-kpi label="Webhooks Today" :value="number_format($health['webhooks_today_total'])" :sub="number_format($health['webhooks_last_hour']) . ' in last hour'" tone="slate" />
+</div>
+
+{{-- ─── Operational Health widget ──────────────────────────────────────────── --}}
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden mb-6">
+  <div class="px-5 py-3 border-b border-gray-200">
+    <h2 class="font-semibold text-ink">System Health</h2>
+  </div>
+  <div class="grid grid-cols-1 lg:grid-cols-4 gap-0 divide-y lg:divide-y-0 lg:divide-x divide-gray-100">
+    <div class="p-4">
+      <div class="text-xs text-gray-500 uppercase tracking-wide">Last Auth.net Webhook</div>
+      <div class="text-lg font-semibold mt-1 {{ $health['last_webhook_at'] && $health['last_webhook_at']->gt(now()->subDay()) ? 'text-green-700' : 'text-amber-700' }}">
+        {{ $health['last_webhook_at'] ? $health['last_webhook_at']->diffForHumans() : 'never' }}
+      </div>
+      <div class="text-xs text-gray-500 mt-1">
+        {{ $health['last_webhook_at']?->format('M j, g:i A') ?? 'no webhooks seen yet' }}
+      </div>
+    </div>
+    <div class="p-4">
+      <div class="text-xs text-gray-500 uppercase tracking-wide">Last subs:sync</div>
+      <div class="text-lg font-semibold mt-1 {{ $health['last_sync_at'] && $health['last_sync_at']->gt(now()->subHours(2)) ? 'text-green-700' : 'text-amber-700' }}">
+        {{ $health['last_sync_at'] ? $health['last_sync_at']->diffForHumans() : 'never' }}
+      </div>
+      <div class="text-xs text-gray-500 mt-1">
+        {{ $health['last_sync_at']?->format('M j, g:i A') ?? 'hourly sync pending' }}
+      </div>
+    </div>
+    <div class="p-4">
+      <div class="text-xs text-gray-500 uppercase tracking-wide">Last Grace-Period Termination</div>
+      <div class="text-lg font-semibold mt-1 text-gray-700">
+        {{ $health['last_terminate_at'] ? $health['last_terminate_at']->diffForHumans() : 'never' }}
+      </div>
+      <div class="text-xs text-gray-500 mt-1">
+        {{ $health['last_terminate_at']?->format('M j, g:i A') ?? 'daily 2 AM run' }}
+      </div>
+    </div>
+    <div class="p-4">
+      <div class="text-xs text-gray-500 uppercase tracking-wide">Signature Verification (today)</div>
+      <div class="text-lg font-semibold mt-1">
+        <span class="text-green-700">{{ $health['signature_ok_today'] }}</span>
+        <span class="text-gray-400 text-sm">OK</span>
+        @if ($health['signature_invalid_today'] > 0)
+          · <span class="text-red-700">{{ $health['signature_invalid_today'] }}</span> <span class="text-gray-400 text-sm">INVALID</span>
+        @endif
+        @if ($health['signature_unverified_today'] > 0)
+          · <span class="text-gray-500">{{ $health['signature_unverified_today'] }}</span> <span class="text-gray-400 text-sm">N/A</span>
+        @endif
+      </div>
+      <div class="text-xs text-gray-500 mt-1">
+        enforcement is <span class="font-medium {{ $health['enforce_signature'] ? 'text-green-700' : 'text-amber-700' }}">{{ $health['enforce_signature'] ? 'ON' : 'OFF (log-only)' }}</span>
+      </div>
+    </div>
+  </div>
+  @if (!empty($health['webhooks_today_by_type']))
+    <div class="px-5 py-3 border-t border-gray-100 text-xs text-gray-600">
+      <span class="uppercase text-gray-500 tracking-wide">Today by event:</span>
+      @foreach ($health['webhooks_today_by_type'] as $type => $cnt)
+        <span class="inline-block mr-3 mt-1">
+          <span class="font-mono text-[11px] text-gray-500">{{ str_replace('net.authorize.', '', $type) }}</span>
+          <span class="font-semibold text-ink">{{ $cnt }}</span>
+        </span>
+      @endforeach
+    </div>
+  @endif
 </div>
 
 {{-- ─── At-Risk Alert (only shows if needed) ───────────────────────────────── --}}
@@ -62,6 +152,98 @@
 {{-- ─── Activity Feed (full width) ─────────────────────────────────────────── --}}
 <div class="mb-6">
   @include('admin.partials.activity-feed', ['events' => $activityFeed])
+</div>
+
+{{-- ─── Plan Mix + Recent Payments ─────────────────────────────────────────── --}}
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+
+  <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+    <div class="px-5 py-3 border-b border-gray-200">
+      <h2 class="font-semibold text-ink">Plan Mix</h2>
+    </div>
+    <table class="w-full text-sm">
+      <thead class="text-xs uppercase text-gray-500 bg-gray-50 border-b border-gray-200">
+        <tr>
+          <th class="text-left py-2.5 px-5 font-medium">Plan</th>
+          <th class="text-right py-2.5 px-3 font-medium">Active</th>
+          <th class="text-right py-2.5 px-3 font-medium">Past Due</th>
+          <th class="text-right py-2.5 px-3 font-medium">Cancelled</th>
+          <th class="text-right py-2.5 px-3 font-medium">Churn</th>
+          <th class="text-right py-2.5 px-5 font-medium">MRR</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100">
+        @foreach ($planMix as $p)
+          <tr class="hover:bg-gray-50">
+            <td class="py-2.5 px-5 font-medium">{{ $p['label'] }}</td>
+            <td class="py-2.5 px-3 text-right text-green-700">{{ $p['active'] }}</td>
+            <td class="py-2.5 px-3 text-right text-amber-700">{{ $p['past_due'] }}</td>
+            <td class="py-2.5 px-3 text-right text-red-700">{{ $p['cancelled'] }}</td>
+            <td class="py-2.5 px-3 text-right text-gray-600">{{ $p['churn_pct'] }}%</td>
+            <td class="py-2.5 px-5 text-right font-semibold">${{ number_format($p['mrr'], 0) }}</td>
+          </tr>
+        @endforeach
+      </tbody>
+    </table>
+  </div>
+
+  <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+    <div class="px-5 py-3 border-b border-gray-200">
+      <h2 class="font-semibold text-ink">Recent Payments</h2>
+    </div>
+    <table class="w-full text-sm">
+      <thead class="text-xs uppercase text-gray-500 bg-gray-50 border-b border-gray-200">
+        <tr>
+          <th class="text-left py-2.5 px-5 font-medium">Customer</th>
+          <th class="text-left py-2.5 px-3 font-medium">Type</th>
+          <th class="text-right py-2.5 px-3 font-medium">Amount</th>
+          <th class="text-right py-2.5 px-5 font-medium">When</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100">
+        @forelse ($recentPayments as $pay)
+          @php
+            $sub = $pay->subscription;
+            $isNeg = in_array($pay->type, ['refund', 'void'], true);
+            $amtCls = $isNeg ? 'text-red-700' : 'text-ink';
+            $typeCls = match($pay->type) {
+              'initial'   => 'bg-slate-100 text-slate-700',
+              'recurring' => 'bg-green-100 text-green-800',
+              'refund'    => 'bg-red-100 text-red-800',
+              'void'      => 'bg-gray-200 text-gray-700',
+              default     => 'bg-gray-100 text-gray-700',
+            };
+          @endphp
+          <tr class="hover:bg-gray-50 {{ $sub ? 'cursor-pointer' : '' }}"
+              @if ($sub) onclick="window.location='{{ route('admin.subscription.show', $sub->id) }}'" @endif>
+            <td class="py-2.5 px-5">
+              @if ($sub)
+                <div class="font-medium">{{ $sub->first_name }} {{ $sub->last_name }}</div>
+                <div class="text-xs text-gray-500">{{ $sub->email }}</div>
+              @else
+                <div class="text-gray-400 text-xs">(unlinked — {{ $pay->invoice_number ?: 'no invoice' }})</div>
+              @endif
+            </td>
+            <td class="py-2.5 px-3">
+              <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-semibold {{ $typeCls }}">{{ ucfirst($pay->type) }}</span>
+            </td>
+            <td class="py-2.5 px-3 text-right font-semibold {{ $amtCls }}">
+              {{ $isNeg ? '-' : '' }}${{ number_format($pay->amount, 2) }}
+            </td>
+            <td class="py-2.5 px-5 text-right text-xs text-gray-500">
+              {{ $pay->charged_at?->diffForHumans() ?? '—' }}
+            </td>
+          </tr>
+        @empty
+          <tr>
+            <td colspan="4" class="py-8 text-center text-gray-400 text-sm">
+              No payments recorded yet.
+            </td>
+          </tr>
+        @endforelse
+      </tbody>
+    </table>
+  </div>
 </div>
 
 {{-- ─── Referrals summary ──────────────────────────────────────────────────── --}}
