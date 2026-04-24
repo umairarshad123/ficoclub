@@ -6,8 +6,8 @@
 
 @php
     $sigBadge = function ($val): array {
-        if ($val === true || $val === 1)  return ['OK',       'bg-green-100 text-green-800'];
-        if ($val === false || $val === 0) return ['INVALID',  'bg-red-100 text-red-800'];
+        if ($val === true || $val === 1)  return ['OK',      'bg-green-100 text-green-800'];
+        if ($val === false || $val === 0) return ['INVALID', 'bg-red-100 text-red-800'];
         return ['N/A', 'bg-gray-100 text-gray-600'];
     };
 
@@ -59,32 +59,22 @@
   </div>
 </div>
 
-{{-- ─── 24h activity chart ─────────────────────────────────────────────────── --}}
-<div class="bg-white rounded-xl border border-gray-200 p-5 mb-4">
-  <div class="flex items-center justify-between mb-3">
-    <h2 class="font-semibold text-ink">Webhook Activity — Last 24 Hours</h2>
-    <span class="text-xs text-gray-500">{{ array_sum(array_column($series, 'count')) }} events</span>
-  </div>
-  <canvas id="webhooks24hChart" height="100"></canvas>
-</div>
-
 {{-- ─── Filter bar ─────────────────────────────────────────────────────────── --}}
 <form method="GET" action="{{ route('admin.webhooks') }}"
       class="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-  <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
+  <div class="grid grid-cols-2 lg:grid-cols-6 gap-3">
 
-    <div class="md:col-span-2">
-      <label class="text-xs font-medium text-gray-600 uppercase">Search</label>
+    <div class="col-span-2 lg:col-span-2">
+      <label class="text-xs font-medium text-gray-600">Search</label>
       <input type="text" name="q" value="{{ $filters['q'] ?? '' }}"
-             placeholder="customer name, email, ARB id, invoice, IP..."
-             class="mt-1 w-full text-sm px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-gold">
+             placeholder="Customer name, email, ARB id, invoice…"
+             class="mt-1 w-full text-sm px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent outline-none">
     </div>
 
     <div>
-      <label class="text-xs font-medium text-gray-600 uppercase">Event Type</label>
-      <select name="event_type"
-              class="mt-1 w-full text-sm px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-gold">
-        <option value="">All event types</option>
+      <label class="text-xs font-medium text-gray-600">Event Type</label>
+      <select name="event_type" class="mt-1 w-full text-sm px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-gold">
+        <option value="">All</option>
         @foreach ($byTypeAll as $row)
           <option value="{{ $row->event_type }}" @selected(($filters['event_type'] ?? '') === $row->event_type)>
             {{ str_replace('net.authorize.', '', $row->event_type) }} ({{ $row->cnt }})
@@ -94,9 +84,8 @@
     </div>
 
     <div>
-      <label class="text-xs font-medium text-gray-600 uppercase">Signature</label>
-      <select name="signature"
-              class="mt-1 w-full text-sm px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-gold">
+      <label class="text-xs font-medium text-gray-600">Signature</label>
+      <select name="signature" class="mt-1 w-full text-sm px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-gold">
         <option value="">Any</option>
         <option value="ok"         @selected(($filters['signature'] ?? '') === 'ok')>Valid</option>
         <option value="invalid"    @selected(($filters['signature'] ?? '') === 'invalid')>Invalid</option>
@@ -104,32 +93,37 @@
       </select>
     </div>
 
-    <div class="grid grid-cols-2 gap-2">
+    <div class="grid grid-cols-2 gap-2 col-span-2 lg:col-span-2">
       <div>
-        <label class="text-xs font-medium text-gray-600 uppercase">From</label>
+        <label class="text-xs font-medium text-gray-600">From</label>
         <input type="date" name="from" value="{{ $filters['from'] ?? '' }}"
-               class="mt-1 w-full text-sm px-2 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-gold">
+               class="mt-1 w-full text-sm px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-gold">
       </div>
       <div>
-        <label class="text-xs font-medium text-gray-600 uppercase">To</label>
+        <label class="text-xs font-medium text-gray-600">To</label>
         <input type="date" name="to" value="{{ $filters['to'] ?? '' }}"
-               class="mt-1 w-full text-sm px-2 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-gold">
+               class="mt-1 w-full text-sm px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-gold">
       </div>
     </div>
-  </div>
 
-  <div class="mt-3 flex items-center gap-2">
-    <button type="submit"
-            class="px-4 py-2 text-sm font-semibold bg-olive-dark text-paper rounded-lg hover:bg-olive">Apply Filters</button>
-    <a href="{{ route('admin.webhooks') }}" class="px-4 py-2 text-sm text-gray-600 hover:text-ink">Reset</a>
+    <div class="flex items-end gap-2 col-span-2 lg:col-span-6 justify-end">
+      <a href="{{ route('admin.webhooks') }}"
+         class="px-4 py-2 text-sm text-gray-600 hover:text-ink">Reset</a>
+      <button type="submit"
+              class="px-4 py-2 text-sm font-semibold bg-olive-dark text-paper rounded-lg hover:bg-olive transition">
+        Apply
+      </button>
+    </div>
   </div>
 </form>
 
-{{-- ─── Events table + Modal (Alpine) ──────────────────────────────────────── --}}
-<div x-data="{ open: false, current: {} }" class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-  <div class="px-5 py-3 border-b border-gray-200 flex items-center justify-between">
-    <h2 class="font-semibold text-ink">Inbound Webhooks</h2>
-    <span class="text-xs text-gray-500">{{ number_format($events->total()) }} {{ \Illuminate\Support\Str::plural('event', $events->total()) }} matching</span>
+{{-- ─── Results table ──────────────────────────────────────────────────────── --}}
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+  <div class="flex items-center justify-between px-5 py-3 border-b border-gray-200 text-sm">
+    <div class="text-gray-600">
+      Showing <span class="font-medium text-ink">{{ $events->firstItem() ?? 0 }}–{{ $events->lastItem() ?? 0 }}</span>
+      of <span class="font-medium text-ink">{{ number_format($events->total()) }}</span>
+    </div>
   </div>
 
   <div class="overflow-x-auto">
@@ -155,25 +149,19 @@
           @endphp
           <tr class="hover:bg-gray-50 align-top">
             <td class="py-3 px-5">
-              <div class="flex items-center gap-2">
-                <span class="inline-flex px-2 py-0.5 rounded-full text-[11px] font-semibold {{ $catCls }}">
-                  {{ ucfirst($ev->category()) }}
-                </span>
-              </div>
+              <span class="inline-flex px-2 py-0.5 rounded-full text-[11px] font-semibold {{ $catCls }}">
+                {{ ucfirst($ev->category()) }}
+              </span>
               <div class="font-mono text-[11px] text-gray-700 mt-1">{{ $shortType }}</div>
               @if ($ev->description)
                 <div class="text-xs text-gray-500 mt-1 max-w-md">{{ $ev->description }}</div>
               @endif
             </td>
             <td class="py-3 px-3">
-              @if ($ev->matched_subscription_id || $custName !== '—')
+              @if ($custName !== '—')
                 <div class="text-sm font-medium text-ink">{{ $custName }}</div>
                 @if ($ev->customer_email)
                   <div class="text-xs text-gray-500">{{ $ev->customer_email }}</div>
-                @endif
-                @if ($ev->matched_subscription_id)
-                  <a href="{{ route('admin.subscription.show', $ev->matched_subscription_id) }}"
-                     class="text-[11px] text-olive hover:text-gold underline-offset-2 hover:underline">view subscription →</a>
                 @endif
               @else
                 <span class="text-gray-300 text-xs">unmatched</span>
@@ -203,41 +191,20 @@
               <div class="text-[11px] text-gray-400">{{ $ev->received_at?->diffForHumans() }}</div>
             </td>
             <td class="py-3 px-5 text-right whitespace-nowrap">
-              @php
-                $modalData = [
-                    'id'              => $ev->id,
-                    'event_type'      => $ev->event_type,
-                    'description'     => $ev->description,
-                    'customer_name'   => $custName,
-                    'customer_email'  => $ev->customer_email,
-                    'amount'          => $ev->amount,
-                    'entity_id'       => $ev->entity_id,
-                    'invoice_number'  => $ev->invoice_number,
-                    'notification_id' => $ev->notification_id,
-                    'received_at'     => $ev->received_at?->format('M j, Y g:i:s A'),
-                    'source_ip'       => $ev->source_ip,
-                    'signature'       => $sigLabel,
-                    'status_label'    => $statusBg['label'],
-                    'response_code'   => $ev->response_code,
-                    'response_label'  => $ev->responseCodeLabel(),
-                    'arb_status'      => $ev->arb_status,
-                    'subscription_id' => $ev->matched_subscription_id,
-                    'payload'         => json_encode($ev->payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES),
-                ];
-              @endphp
-              <button type="button"
-                      @click="current = {{ \Illuminate\Support\Js::from($modalData) }}; open = true"
-                      class="text-xs px-3 py-1.5 rounded-md border border-gray-200 hover:bg-gray-50 text-gray-700 font-medium">
+              <a href="{{ route('admin.webhook.show', $ev->id) }}"
+                 class="inline-flex items-center text-xs px-3 py-1.5 rounded-md border border-gray-200 hover:bg-gray-50 text-gray-700 font-medium">
                 View Details
-              </button>
+              </a>
             </td>
           </tr>
         @empty
           <tr>
             <td colspan="6" class="py-12 text-center">
               <div class="text-3xl mb-2">📭</div>
-              <div class="text-sm text-gray-600 font-medium">No webhook events match your filters</div>
-              <div class="text-xs text-gray-400 mt-1">Once Auth.net posts to /webhooks/authorize-net, rows will appear here.</div>
+              <div class="text-sm text-gray-600 font-medium">No webhooks yet</div>
+              <div class="text-xs text-gray-400 mt-1">
+                Once Authorize.Net posts to <span class="font-mono">/webhooks/authorize-net</span>, rows will appear here.
+              </div>
             </td>
           </tr>
         @endforelse
@@ -246,157 +213,10 @@
   </div>
 
   @if ($events->hasPages())
-    <div class="px-5 py-3 border-t border-gray-100">
+    <div class="px-5 py-3 border-t border-gray-200">
       {{ $events->links() }}
     </div>
   @endif
-
-  {{-- ─── Modal: full webhook detail (powered by current{} state) ─────────── --}}
-  <div x-show="open" x-cloak
-       x-transition.opacity
-       class="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
-       @keydown.escape.window="open = false"
-       @click.self="open = false">
-
-    <div class="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[92vh] overflow-hidden flex flex-col"
-         x-transition>
-      <div class="px-5 py-3 border-b border-gray-200 flex items-center justify-between">
-        <div>
-          <div class="text-xs uppercase text-gray-500 tracking-wide">Webhook Event</div>
-          <div class="font-mono text-sm text-ink mt-0.5" x-text="current.event_type"></div>
-        </div>
-        <button type="button" @click="open = false"
-                class="text-gray-400 hover:text-ink p-1">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-          </svg>
-        </button>
-      </div>
-
-      <div class="overflow-y-auto p-5 space-y-4 text-sm">
-        <div class="bg-gray-50 rounded-lg p-3">
-          <div class="text-xs text-gray-500 uppercase mb-1">In plain English</div>
-          <div class="text-ink" x-text="current.description || current.event_type"></div>
-        </div>
-
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <div class="text-xs text-gray-500 uppercase">Customer</div>
-            <div class="font-medium" x-text="current.customer_name || '—'"></div>
-            <div class="text-xs text-gray-500" x-text="current.customer_email || ''"></div>
-          </div>
-          <div>
-            <div class="text-xs text-gray-500 uppercase">Amount</div>
-            <div class="font-medium">
-              <template x-if="current.amount !== null && current.amount !== undefined">
-                <span x-text="'$' + Number(current.amount).toFixed(2)"></span>
-              </template>
-              <template x-if="current.amount === null || current.amount === undefined">
-                <span class="text-gray-400">—</span>
-              </template>
-            </div>
-          </div>
-          <div>
-            <div class="text-xs text-gray-500 uppercase">Status</div>
-            <div class="font-medium" x-text="current.status_label"></div>
-          </div>
-          <div>
-            <div class="text-xs text-gray-500 uppercase">Signature</div>
-            <div class="font-medium" x-text="current.signature"></div>
-          </div>
-          <div>
-            <div class="text-xs text-gray-500 uppercase">Response Code</div>
-            <div class="font-medium">
-              <template x-if="current.response_code">
-                <span><span x-text="current.response_code"></span> — <span x-text="current.response_label"></span></span>
-              </template>
-              <template x-if="!current.response_code">
-                <span class="text-gray-400">—</span>
-              </template>
-            </div>
-          </div>
-          <div>
-            <div class="text-xs text-gray-500 uppercase">ARB Status</div>
-            <div class="font-medium" x-text="current.arb_status || '—'"></div>
-          </div>
-          <div>
-            <div class="text-xs text-gray-500 uppercase">Entity / Transaction ID</div>
-            <div class="font-mono text-xs" x-text="current.entity_id || '—'"></div>
-          </div>
-          <div>
-            <div class="text-xs text-gray-500 uppercase">Invoice</div>
-            <div class="font-mono text-xs" x-text="current.invoice_number || '—'"></div>
-          </div>
-          <div class="col-span-2">
-            <div class="text-xs text-gray-500 uppercase">Notification ID</div>
-            <div class="font-mono text-xs break-all" x-text="current.notification_id || '—'"></div>
-          </div>
-          <div>
-            <div class="text-xs text-gray-500 uppercase">Received</div>
-            <div class="font-medium" x-text="current.received_at || '—'"></div>
-          </div>
-          <div>
-            <div class="text-xs text-gray-500 uppercase">Source IP</div>
-            <div class="font-mono text-xs" x-text="current.source_ip || '—'"></div>
-          </div>
-        </div>
-
-        <div x-data="{ copied: false }">
-          <div class="flex items-center justify-between mb-1">
-            <div class="text-xs text-gray-500 uppercase">Raw JSON Payload</div>
-            <button type="button"
-                    @click="navigator.clipboard.writeText(current.payload); copied = true; setTimeout(() => copied = false, 1500)"
-                    class="text-[11px] px-2 py-1 rounded-md border border-gray-200 hover:bg-gray-50 text-gray-700">
-              <span x-show="!copied">Copy JSON</span>
-              <span x-show="copied" x-cloak class="text-green-700">Copied ✓</span>
-            </button>
-          </div>
-          <pre class="bg-gray-900 text-gray-100 rounded-lg p-4 text-[11px] leading-relaxed overflow-x-auto max-h-72 overflow-y-auto whitespace-pre-wrap" x-text="current.payload"></pre>
-        </div>
-      </div>
-
-      <div class="px-5 py-3 border-t border-gray-200 flex items-center justify-between bg-gray-50">
-        <template x-if="current.subscription_id">
-          <a :href="'/admin/subscriptions/' + current.subscription_id"
-             class="text-sm text-olive hover:text-gold underline-offset-2 hover:underline">
-            Open subscription →
-          </a>
-        </template>
-        <template x-if="!current.subscription_id"><span></span></template>
-        <button type="button" @click="open = false"
-                class="px-4 py-2 text-sm font-semibold bg-olive-dark text-paper rounded-lg hover:bg-olive">
-          Close
-        </button>
-      </div>
-    </div>
-  </div>
 </div>
-
-@push('scripts')
-<script>
-  new Chart(document.getElementById('webhooks24hChart'), {
-    type: 'bar',
-    data: {
-      labels: @json(array_column($series, 'label')),
-      datasets: [{
-        label: 'Webhooks',
-        data: @json(array_column($series, 'count')),
-        backgroundColor: '#c9a54a',
-        borderColor: '#3d4020',
-        borderWidth: 1,
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
-      scales: {
-        x: { grid: { display: false } },
-        y: { beginAtZero: true, ticks: { precision: 0, stepSize: 1 } }
-      }
-    }
-  });
-</script>
-@endpush
 
 @endsection
