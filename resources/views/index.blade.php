@@ -1208,7 +1208,7 @@ color:#fff !important;
         <div class="hero-eyebrow">
           We Specialize in Consumer Law, FCRA, FDCPA & Metro 2 Compliance
         </div>
-      <h1 class="hero-h1 reveal">Improve Your Credit<br>  
+      <h1 class="hero-h1 reveal">Improve Your CROW<br>  
         <span class="accent-green">With Professional</span> Credit Analysis  <span class="accent-green underline-anim">& Guidance</span>
       </h1>
 
