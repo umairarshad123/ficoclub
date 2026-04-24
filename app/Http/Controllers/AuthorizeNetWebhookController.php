@@ -718,20 +718,42 @@ class AuthorizeNetWebhookController extends Controller
 
     // ═════════════════════════════════════════════════════════════════════════
     // Persist a row in webhook_events. Best-effort — never throws.
+    //
+    // Enriches the row with denormalized customer fields (snapshot from the
+    // matched subscription at receive time) + a pre-computed plain-English
+    // description, so the dashboard can render rows without re-parsing JSON.
     // ═════════════════════════════════════════════════════════════════════════
     private function persistWebhookEvent(array $attrs): ?WebhookEvent
     {
         try {
-            // Resolve matched_subscription_id if we can
-            $matchedId = null;
+            // Resolve matched subscription
+            $matchedSub = null;
             if (!empty($attrs['entity_id'])) {
-                // Most failure/termination events reference the ARB sub id
-                $matchedId = Subscription::where('arb_subscription_id', $attrs['entity_id'])->value('id');
+                $matchedSub = Subscription::where('arb_subscription_id', $attrs['entity_id'])->first();
             }
-            if (!$matchedId && !empty($attrs['invoice_number'])) {
-                $matchedId = Subscription::where('invoice_number', $attrs['invoice_number'])->value('id');
+            if (!$matchedSub && !empty($attrs['invoice_number'])) {
+                $matchedSub = Subscription::where('invoice_number', $attrs['invoice_number'])->first();
             }
-            $attrs['matched_subscription_id'] = $matchedId;
+
+            $attrs['matched_subscription_id'] = $matchedSub?->id;
+            $attrs['customer_first_name']     = $matchedSub?->first_name;
+            $attrs['customer_last_name']      = $matchedSub?->last_name;
+            $attrs['customer_email']          = $matchedSub?->email;
+
+            // Extract responseCode for transaction-style events
+            $payload = $attrs['payload'] ?? [];
+            $rc = data_get($payload, 'payload.responseCode');
+            if ($rc !== null && $rc !== '') {
+                $attrs['response_code'] = (string) $rc;
+            }
+
+            // Plain-English description for the dashboard
+            $attrs['description'] = WebhookEvent::describeEvent(
+                $attrs['event_type'] ?? 'unknown',
+                is_array($payload) ? $payload : [],
+                $matchedSub?->first_name,
+                $matchedSub?->last_name
+            );
 
             // Idempotent insert on notification_id when present; without notification_id,
             // we always insert (forged / test traffic).

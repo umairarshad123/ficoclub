@@ -152,6 +152,10 @@ Route::middleware('admin.auth')->group(function () {
 
         // Referrals
         Route::get('/referrals', [DashboardController::class, 'referrals'])->name('admin.referrals');
+
+        // Webhooks (Authorize.Net real-time monitoring)
+        Route::get('/webhooks',       [DashboardController::class, 'webhooksIndex'])->name('admin.webhooks');
+        Route::get('/webhooks/{id}',  [DashboardController::class, 'webhookShow'])->name('admin.webhook.show')->whereNumber('id');
     });
 
 });

@@ -245,6 +245,128 @@ class DashboardController extends Controller
     }
 
     // ═════════════════════════════════════════════════════════════════════════
+    // Webhooks — Authorize.Net inbound monitoring
+    // Read-only surfaces; no webhook processing logic touched.
+    // ═════════════════════════════════════════════════════════════════════════
+
+    public function webhooksIndex(Request $request)
+    {
+        $now      = Carbon::now();
+        $dayStart = $now->copy()->startOfDay();
+        $hourAgo  = $now->copy()->subHour();
+        $weekAgo  = $now->copy()->subDays(7);
+
+        // ── Filters ──────────────────────────────────────────────────────────
+        $query = WebhookEvent::query();
+
+        if ($eventType = $request->input('event_type')) {
+            $query->where('event_type', $eventType);
+        }
+
+        if ($sig = $request->input('signature')) {
+            match ($sig) {
+                'ok'         => $query->where('signature_valid', true),
+                'invalid'    => $query->where('signature_valid', false),
+                'unverified' => $query->whereNull('signature_valid'),
+                default      => null,
+            };
+        }
+
+        if ($search = trim((string) $request->input('q', ''))) {
+            $query->where(function ($w) use ($search) {
+                $w->where('notification_id',     'like', "%{$search}%")
+                  ->orWhere('entity_id',          'like', "%{$search}%")
+                  ->orWhere('invoice_number',     'like', "%{$search}%")
+                  ->orWhere('source_ip',          'like', "%{$search}%")
+                  ->orWhere('customer_first_name','like', "%{$search}%")
+                  ->orWhere('customer_last_name', 'like', "%{$search}%")
+                  ->orWhere('customer_email',     'like', "%{$search}%")
+                  ->orWhere('description',        'like', "%{$search}%");
+            });
+        }
+
+        if ($from = $request->input('from')) { $query->whereDate('received_at', '>=', $from); }
+        if ($to   = $request->input('to'))   { $query->whereDate('received_at', '<=', $to); }
+
+        $events = $query->with('matchedSubscription:id,first_name,last_name,email,arb_subscription_id')
+            ->orderByDesc('received_at')
+            ->paginate(25)
+            ->withQueryString();
+
+        // ── Stats strip ──────────────────────────────────────────────────────
+        $stats = [
+            'today'              => WebhookEvent::whereBetween('received_at', [$dayStart, $now])->count(),
+            'last_hour'          => WebhookEvent::whereBetween('received_at', [$hourAgo, $now])->count(),
+            'last_7d'            => WebhookEvent::whereBetween('received_at', [$weekAgo, $now])->count(),
+            'signature_ok_today' => WebhookEvent::whereBetween('received_at', [$dayStart, $now])
+                                        ->where('signature_valid', true)->count(),
+            'signature_invalid_today' => WebhookEvent::whereBetween('received_at', [$dayStart, $now])
+                                        ->where('signature_valid', false)->count(),
+            'last_received_at'   => WebhookEvent::max('received_at'),
+        ];
+        $stats['last_received_at'] = $stats['last_received_at']
+            ? Carbon::parse($stats['last_received_at'])
+            : null;
+
+        // ── Event-type breakdown (for filter dropdown + chips) ───────────────
+        $byTypeAll = WebhookEvent::select('event_type', DB::raw('COUNT(*) as cnt'))
+            ->groupBy('event_type')
+            ->orderByDesc('cnt')
+            ->get();
+
+        // ── 24h activity series for the chart (hourly buckets) ───────────────
+        $series = $this->buildWebhookHourlySeries($now);
+
+        return view('admin.webhooks-index', [
+            'events'    => $events,
+            'stats'     => $stats,
+            'byTypeAll' => $byTypeAll,
+            'series'    => $series,
+            'filters'   => $request->only(['event_type', 'signature', 'q', 'from', 'to']),
+        ]);
+    }
+
+    public function webhookShow(int $id)
+    {
+        $event = WebhookEvent::with('matchedSubscription:id,first_name,last_name,email,plan_label,status,arb_subscription_id')
+            ->findOrFail($id);
+
+        return view('admin.webhook-show', [
+            'event' => $event,
+        ]);
+    }
+
+    /**
+     * Build a 24-row hourly series ending at the current hour.
+     * Each row: ['label' => '14:00', 'count' => N].
+     */
+    private function buildWebhookHourlySeries(Carbon $now): array
+    {
+        $start = $now->copy()->subHours(23)->startOfHour();
+
+        $rows = WebhookEvent::where('received_at', '>=', $start)
+            ->select(
+                DB::raw("DATE_FORMAT(received_at, '%Y-%m-%d %H:00:00') as bucket"),
+                DB::raw('COUNT(*) as cnt')
+            )
+            ->groupBy('bucket')
+            ->pluck('cnt', 'bucket')
+            ->toArray();
+
+        $series = [];
+        $cursor = $start->copy();
+        for ($i = 0; $i < 24; $i++) {
+            $key = $cursor->format('Y-m-d H:00:00');
+            $series[] = [
+                'label' => $cursor->format('ga'),
+                'count' => (int) ($rows[$key] ?? 0),
+            ];
+            $cursor->addHour();
+        }
+        return $series;
+    }
+
+    // ═════════════════════════════════════════════════════════════════════════
     // CSV EXPORT
     // ═════════════════════════════════════════════════════════════════════════
     public function exportCsv(Request $request): StreamedResponse

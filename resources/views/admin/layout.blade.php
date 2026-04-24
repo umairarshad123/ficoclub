@@ -85,6 +85,12 @@
   <span class="text-base">⚠️</span> At Risk
 </a>
 
+      <a href="{{ route('admin.webhooks') }}"
+         class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition {{ $isActive('admin.webhooks') }}">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        Webhooks
+      </a>
+
     </nav>
 
     <div class="absolute bottom-0 inset-x-0 p-4 border-t border-white/10">
@@ -117,6 +123,8 @@
   <div x-show="sidebarOpen" x-cloak @click="sidebarOpen = false"
        class="fixed inset-0 bg-black/40 z-20 lg:hidden"></div>
 </div>
+
+@stack('scripts')
 
 </body>
 </html>

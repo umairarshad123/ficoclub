@@ -105,6 +105,7 @@
           <span class="font-semibold text-ink">{{ $cnt }}</span>
         </span>
       @endforeach
+      <a href="{{ route('admin.webhooks') }}" class="ml-2 text-gold hover:underline">view full webhook log →</a>
     </div>
   @endif
 </div>
