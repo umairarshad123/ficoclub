@@ -127,7 +127,7 @@ return [
             'label'        => 'VIP Plan',
             'tag'          => 'VIP PLAN',
             'tagline'      => 'White-Glove · Done-With-You',
-            'desc'         => 'Done-with-you. Priority everything, a direct text line to Victoria, and weekly progress calls.',
+            'desc'         => 'Done-with-you. Priority everything, a direct text line to Anthony, and weekly progress calls.',
             'amount'       => '1997.00',
             'recurring'    => null,
             'compare_at'   => null,
@@ -144,7 +144,7 @@ return [
             'cta'          => 'Apply For VIP',
             'features'     => [
                 'Priority dispute filing',
-                'Direct text line to Victoria',
+                'Direct text line to Anthony',
                 'Weekly progress calls',
                 'Lender + funding intros',
                 'Lifetime credit guidance',

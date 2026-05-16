@@ -1447,25 +1447,30 @@ Fallback = config('plans.default') if nothing/invalid passed
 // Mirrors config/plans.php exactly — same plans as the pricing page
 // ════════════════════════════════════════════════
 // Built from config/plans.php — single source of truth.
-var PLANS = @json(collect(config('plans.plans'))->mapWithKeys(function ($p, $k) {
-    return [$k => [
-        'tag'         => '✦ ' . $p['tag'],
-        'tagClass'    => $p['tag_class'],
-        'name'        => $p['label'],
-        'tagline'     => $p['tagline'],
-        'desc'        => $p['desc'],
-        'displayAmt'  => '$' . number_format((float) $p['amount'], 2),
-        'priceBig'    => $p['price_big'],
-        'amount'      => $p['amount'],
-        'recurring'   => $p['recurring'],
-        'compareAt'   => $p['compare_at'] ? '$' . rtrim(rtrim(number_format((float) $p['compare_at'], 2), '0'), '.') : null,
-        'save'        => $p['save'],
-        'billingNote' => $p['billing_note'],
-        'isCouples'   => (bool) ($p['is_couples'] ?? false),
-        'features'    => array_values($p['features']),
-    ]];
-}));
-var DEFAULT_PLAN = @json(config('plans.default', 'onetime'));
+@php
+    $jsPlans = [];
+    foreach (config('plans.plans', []) as $k => $p) {
+        $jsPlans[$k] = [
+            'tag'         => '✦ ' . $p['tag'],
+            'tagClass'    => $p['tag_class'],
+            'name'        => $p['label'],
+            'tagline'     => $p['tagline'],
+            'desc'        => $p['desc'],
+            'displayAmt'  => '$' . number_format((float) $p['amount'], 2),
+            'priceBig'    => $p['price_big'],
+            'amount'      => $p['amount'],
+            'recurring'   => $p['recurring'],
+            'compareAt'   => $p['compare_at'] ? '$' . rtrim(rtrim(number_format((float) $p['compare_at'], 2), '0'), '.') : null,
+            'save'        => $p['save'],
+            'billingNote' => $p['billing_note'],
+            'isCouples'   => (bool) ($p['is_couples'] ?? false),
+            'features'    => array_values($p['features']),
+        ];
+    }
+    $defaultPlan = config('plans.default', 'onetime');
+@endphp
+var PLANS = {!! json_encode($jsPlans, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!};
+var DEFAULT_PLAN = {!! json_encode($defaultPlan) !!};
 
         // ════════════════════════════════════════════════
         // READ PLAN FROM URL PARAM

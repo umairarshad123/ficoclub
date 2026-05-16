@@ -1473,31 +1473,38 @@ color:#fff !important;
   .pricing-section .pc:hover .orb1{transform:scale(1.5);opacity:.7}
   .pricing-section .pc:hover .orb2{transform:scale(1.8);opacity:.6}
 
-  /* ── BADGE ── */
+  /* ── CORNER RIBBON ──
+     A dedicated corner box with its OWN overflow:hidden + matching
+     border-radius. The card uses transform-style:preserve-3d which
+     disables overflow clipping of its descendants, so the ribbon must
+     be clipped by this wrapper (no 3D context) instead. */
+  .pricing-section .badge-wrap{
+    position:absolute;
+    top:0;
+    right:0;
+    width:120px;
+    height:120px;
+    overflow:hidden;
+    border-top-right-radius:26px;   /* matches .pc border-radius */
+    pointer-events:none;
+    z-index:6;
+  }
   .pricing-section .badge{
     position:absolute;
-    top:18px;
-    right:-60px;
-    width:170px;
+    top:20px;
+    right:-42px;
+    width:152px;
     text-align:center;
-    background:#f3b24a;
-    color:#fff;
-    font-size:11px;
-    font-weight:800;
-    letter-spacing:.5px;
-    text-transform:none;
-    padding:8px 0;
-    border-radius:0;
-    border:none;
-    box-shadow:0 8px 20px rgba(243,178,74,.35);
     transform:rotate(45deg);
-    transform-origin:center;
-    z-index:30;
-    animation:ps-badgeGlow 2.2s ease-in-out infinite;
-  }
-  @keyframes ps-badgeGlow{
-    0%,100%{box-shadow:0 8px 20px rgba(243,178,74,.35);}
-    50%{box-shadow:0 8px 20px rgba(243,178,74,.35),0 0 18px rgba(243,178,74,.45);}
+    background:linear-gradient(135deg,#fbbf24 0%,#f59e0b 100%);
+    color:#fff;
+    font-size:10.5px;
+    font-weight:800;
+    letter-spacing:1.2px;
+    text-transform:uppercase;
+    padding:6px 0;
+    box-shadow:0 4px 14px rgba(245,158,11,.45),
+               inset 0 1px 0 rgba(255,255,255,.28);
   }
 
   /* ── PLAN LABEL ── */
@@ -1636,7 +1643,7 @@ color:#fff !important;
   <div class="glow" id="ps-g{{ $ps_i }}"></div>
   <div class="orb orb1"></div><div class="orb orb2"></div>
   @if (!empty($ps_plan['badge']))
-  <div class="badge">{{ $ps_plan['badge'] }}</div>
+  <div class="badge-wrap"><div class="badge">{{ $ps_plan['badge'] }}</div></div>
   @endif
   <div class="pplan">{{ $ps_plan['label'] }}</div>
   <div class="pcmp">@if (!empty($ps_plan['compare_at']))${{ rtrim(rtrim(number_format((float) $ps_plan['compare_at'], 2), '0'), '.') }}@endif</div>
