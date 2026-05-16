@@ -1671,47 +1671,55 @@ color:#fff !important;
     <style>
       .sc-step{
         max-width:1340px;margin:26px auto 0;
-        background:linear-gradient(135deg,#0f2044 0%,#16306b 55%,#0f2044 100%);
-        border:1.5px solid rgba(255,255,255,.12);
+        background:linear-gradient(120deg,#15803d 0%,#22c55e 24%,#f97316 60%,#dc2626 100%);
+        border:1.5px solid rgba(255,255,255,.25);
         border-radius:26px;padding:38px 44px;
         display:flex;align-items:center;justify-content:space-between;gap:34px;
         position:relative;overflow:hidden;
-        box-shadow:0 18px 50px rgba(15,32,68,.35),inset 0 1px 0 rgba(255,255,255,.08);
+        box-shadow:0 18px 50px rgba(220,38,38,.28),0 8px 22px rgba(34,197,94,.22),inset 0 1px 0 rgba(255,255,255,.22);
+      }
+      /* Dark scrim so white text stays readable over the bright gradient */
+      .sc-step::after{
+        content:'';position:absolute;inset:0;
+        background:linear-gradient(120deg,rgba(0,0,0,.30) 0%,rgba(0,0,0,.14) 45%,rgba(0,0,0,.34) 100%);
+        pointer-events:none;z-index:0;
       }
       .sc-step::before{
-        content:'';position:absolute;top:-60px;right:-40px;
-        width:240px;height:240px;border-radius:50%;
-        background:radial-gradient(circle,rgba(34,197,94,.22) 0%,transparent 70%);
-        pointer-events:none;
+        content:'';position:absolute;top:-70px;right:-50px;
+        width:260px;height:260px;border-radius:50%;
+        background:radial-gradient(circle,rgba(255,255,255,.22) 0%,transparent 70%);
+        pointer-events:none;z-index:0;
       }
-      .sc-step-l{flex:1;min-width:0;position:relative;z-index:1}
+      .sc-step-l{flex:1;min-width:0;position:relative;z-index:2}
       .sc-eyebrow{
         display:inline-flex;align-items:center;gap:8px;
-        background:rgba(34,197,94,.16);color:#4ade80;
+        background:rgba(255,255,255,.22);color:#fff;border:1px solid rgba(255,255,255,.35);
         font-size:11px;font-weight:900;letter-spacing:2px;text-transform:uppercase;
         padding:7px 16px;border-radius:100px;margin-bottom:16px;
+        backdrop-filter:blur(2px);
       }
-      .sc-eyebrow::before{content:'';width:7px;height:7px;border-radius:50%;background:#22c55e;animation:ps-pulse 2s ease infinite}
+      .sc-eyebrow::before{content:'';width:7px;height:7px;border-radius:50%;background:#fff;animation:ps-pulse 2s ease infinite}
       .sc-step h3{
         font-family:'Sora',sans-serif;font-size:clamp(22px,3vw,30px);
         font-weight:900;color:#fff;line-height:1.18;margin-bottom:10px;
+        text-shadow:0 2px 8px rgba(0,0,0,.35);
       }
-      .sc-step h3 span{color:#4ade80}
+      .sc-step h3 span{color:#fff;text-decoration:underline;text-decoration-color:rgba(255,255,255,.6);text-underline-offset:5px}
       .sc-step p{
-        font-size:14.5px;color:rgba(255,255,255,.78);line-height:1.65;
-        font-weight:500;max-width:620px;
+        font-size:14.5px;color:#fff;line-height:1.65;
+        font-weight:600;max-width:620px;text-shadow:0 1px 6px rgba(0,0,0,.35);
       }
-      .sc-step-r{flex-shrink:0;position:relative;z-index:1;text-align:center}
+      .sc-step-r{flex-shrink:0;position:relative;z-index:2;text-align:center}
       .sc-btn{
         display:inline-flex;align-items:center;justify-content:center;gap:10px;
-        font-family:'Sora',sans-serif;font-size:15px;font-weight:800;letter-spacing:.3px;
+        font-family:'Sora',sans-serif;font-size:15px;font-weight:900;letter-spacing:.3px;
         padding:18px 38px;border-radius:14px;text-decoration:none;white-space:nowrap;
-        background:linear-gradient(135deg,#22c55e 0%,#16a34a 100%);color:#fff;
-        box-shadow:0 10px 28px rgba(34,197,94,.4),inset 0 1px 0 rgba(255,255,255,.25);
+        background:#fff;color:#15803d;
+        box-shadow:0 12px 30px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.6);
         transition:transform .25s cubic-bezier(.16,1,.3,1),box-shadow .25s ease,filter .25s ease;
       }
-      .sc-btn:hover{transform:translateY(-3px);box-shadow:0 16px 38px rgba(34,197,94,.5);filter:brightness(1.05)}
-      .sc-note{margin-top:12px;font-size:12px;color:rgba(255,255,255,.55);font-weight:600}
+      .sc-btn:hover{transform:translateY(-3px);box-shadow:0 18px 40px rgba(0,0,0,.34);filter:brightness(1.03)}
+      .sc-note{margin-top:12px;font-size:12px;color:rgba(255,255,255,.85);font-weight:700;text-shadow:0 1px 4px rgba(0,0,0,.3)}
       @media(max-width:860px){
         .sc-step{flex-direction:column;align-items:flex-start;text-align:left;padding:30px 26px;gap:24px}
         .sc-step-r{width:100%}
@@ -5474,5 +5482,37 @@ document.addEventListener('DOMContentLoaded', function () {
 </style>
 
 <a href="#" onclick="window.open('https://www.sitelock.com/verify.php?site=proximitytoprosperitysolutions.com','SiteLock','width=600,height=600,left=160,top=170');" ><img class="img-fluid" alt="SiteLock" title="SiteLock" src="https://shield.sitelock.com/shield/proximitytoprosperitysolutions.com" /></a>
+
+{{-- ───────── MOBILE-ONLY: center + enlarge key headings ───────── --}}
+<style>
+@media (max-width:768px){
+  /* Section: "Real Problems. / 8 Common Factors / That Can Impact Your Credit" */
+  #remove .remove-header .reveal-left{text-align:center !important;}
+  #remove .remove-header .section-tag{
+    display:inline-block !important;float:none !important;
+    font-size:16px !important;letter-spacing:2.5px !important;margin-bottom:14px !important;
+  }
+  #remove .remove-header h2{
+    text-align:center !important;
+    font-size:34px !important;line-height:1.22 !important;
+  }
+
+  /* Section: "Real Clients. Real Scores. Real Results." + sub */
+  .frs-heading-wrap{text-align:center !important;}
+  .frs-heading{
+    text-align:center !important;
+    font-size:36px !important;line-height:1.18 !important;
+  }
+  .frs-sub{
+    text-align:center !important;
+    font-size:17px !important;line-height:1.55 !important;
+    margin-left:auto !important;margin-right:auto !important;max-width:90% !important;
+  }
+
+  /* General mobile hardening — no horizontal scroll, fluid media */
+  body{overflow-x:hidden !important;}
+  img,video,iframe{max-width:100% !important;height:auto !important;}
+}
+</style>
 </body>
 </html>
