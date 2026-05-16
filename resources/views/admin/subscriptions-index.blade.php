@@ -71,8 +71,11 @@
       <label class="text-xs font-medium text-gray-600">Plan</label>
       <select name="plan" class="mt-1 w-full text-sm px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-gold">
         <option value="">All</option>
+        @foreach (config('plans.plans') as $pk => $pv)
+          <option value="{{ $pk }}" @selected(($filters['plan'] ?? '') === $pk)>{{ $pv['label'] }}</option>
+        @endforeach
         @foreach (['silver','gold','platinum'] as $p)
-          <option value="{{ $p }}" @selected(($filters['plan'] ?? '') === $p)>{{ ucfirst($p) }}</option>
+          <option value="{{ $p }}" @selected(($filters['plan'] ?? '') === $p)>{{ ucfirst($p) }} (legacy)</option>
         @endforeach
       </select>
     </div>

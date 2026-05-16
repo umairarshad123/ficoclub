@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\OnboardingFormController;
+use App\Http\Controllers\CouplesController;
 
 
 /*
@@ -16,6 +17,18 @@ Route::middleware(['web', 'referral'])->get('/', function () {
 
 Route::get('/onboardingform', [OnboardingFormController::class, 'show'])
     ->name('onboarding.form');
+
+/*
+|--------------------------------------------------------------------------
+| Couples Glow-Up — two-person onboarding flow
+|   Hub → Husband → Hub → Wife → Done
+|--------------------------------------------------------------------------
+*/
+Route::get('/couples-onboarding', [CouplesController::class, 'hub'])
+    ->name('couples.hub');
+
+Route::post('/couples-onboarding/complete', [CouplesController::class, 'complete'])
+    ->name('couples.complete');
     
 Route::get('/funding', function () {
     return view('funding');

@@ -1136,10 +1136,10 @@
 <body>
 
 {{--
-PLAN DATA — passed via URL query params from index.blade.php
-Expected params:
-plan   = silver | gold | platinum
-Fallback = platinum if nothing passed
+PLAN DATA — passed via URL query param from index.blade.php
+Expected param:
+plan   = monthly | onetime | couples | vip   (see config/plans.php)
+Fallback = config('plans.default') if nothing/invalid passed
 --}}
 
 
@@ -1386,9 +1386,9 @@ Fallback = platinum if nothing passed
 
                 <div class="plan-top">
                     <div class="plan-tag gold-tag" id="planTag">✦ YOUR SELECTED PLAN</div>
-            <div class="plan-name"    id="planName">Platinum Membership</div>
-        <div class="plan-tagline" id="planTagline">Credit Repair Elite Plan</div>
-        <div class="plan-desc" id="planDesc">Our highest-level plan with everything in Silver and Gold, plus premium support and advanced monitoring benefits.</div>
+            <div class="plan-name"    id="planName">&nbsp;</div>
+        <div class="plan-tagline" id="planTagline">&nbsp;</div>
+        <div class="plan-desc" id="planDesc">&nbsp;</div>
 
                     <ul class="features" id="planFeatures">
                         {{-- Filled by JS --}}
@@ -1397,8 +1397,8 @@ Fallback = platinum if nothing passed
 
                 <div class="price-block">
                     <div class="price-row">
-                <span id="priceRowLabel">Platinum Membership</span>
-                <span class="amount-val" id="priceRowAmount">$500.00</span>
+                <span id="priceRowLabel">&nbsp;</span>
+                <span class="amount-val" id="priceRowAmount">&nbsp;</span>
                     </div>
                     <div class="price-row">
                         <span>Setup fee</span>
@@ -1406,9 +1406,9 @@ Fallback = platinum if nothing passed
                     </div>
                     <div class="price-total-row">
                         <div class="price-total-label">Total Today</div>
-                        <div class="price-total-amount"><sup>$</sup><span id="priceBig">500</span></div>
+                        <div class="price-total-amount"><sup>$</sup><span id="priceBig">&nbsp;</span></div>
                     </div>
-                    <div class="price-billing-note" id="priceBillingNote">then $249/month</div>
+                    <div class="price-billing-note" id="priceBillingNote">&nbsp;</div>
                 </div>
 
                 <div class="cta-wrap">
@@ -1444,103 +1444,46 @@ Fallback = platinum if nothing passed
 <script>
 // ════════════════════════════════════════════════
 // PLAN DEFINITIONS
-// Matches exactly the 3 plans on the pricing page
+// Mirrors config/plans.php exactly — same plans as the pricing page
 // ════════════════════════════════════════════════
-var PLANS = {
-    silver: {
-        tag:         'SILVER MEMBERSHIP',
-        tagClass:    'navy-tag',
-        name:        'Silver Membership',
-        tagline:     'Credit Repair Starter Plan',
-        desc:        'Get started with essential credit repair support designed to help you challenge negative items and strengthen your credit profile.',
-        startAmount: 299,
-        displayAmt:  '$299.00',
-        priceBig:    '299',
-        billingNote: 'then $149/month',
-        creditMonitoring: 'Credit Monitoring not Included',
-        duration:    'Average completion time: 8 months',
-        features: [
-            'Disputing late payments',
-            'Disputing collections',
-            'Disputing charge offs',
-            'Disputing hard inquiries',
-            'Personal information updates',
-            '6 rounds of factual disputes to bureaus, creditors & collection agencies',
-            '24/7 secure client portal access',
-            'Average completion time: 8 months'
-        ],
-        buttonText: 'Start Silver Plan',
-        buttonLink: '/accept-checkout?plan=silver'
-    },
-    gold: {
-        tag:         'GOLD MEMBERSHIP',
-        tagClass:    'gold-tag',
-        name:        'Gold Membership',
-        tagline:     'Credit Repair Foundation Plan',
-        desc:        'Build on the Silver Plan with expanded review for more complex reporting matters and added priority support.',
-        startAmount: 399,
-        displayAmt:  '$399.00',
-        priceBig:    '399',
-        billingNote: 'then $199/month',
-        creditMonitoring: 'Credit Monitoring not Included',
-        duration:    'Average completion time: 6 months',
-        features: [
-            'Everything included in Silver Plan',
-            'Bankruptcy reporting review & assistance',
-            'Repossession reporting review',
-            'Student loan reporting review',
-            'Medical bill reporting review',
-            'Child support reporting review',
-            '4 rounds of factual disputes utilizing FCRA & FDCPA',
-            'Expedited processing — priority service',
-            'Average completion time: 6 months'
-        ],
-        buttonText: 'Start Gold Plan',
-        buttonLink: '/accept-checkout?plan=gold'
-    },
-    platinum: {
-        tag:         'PLATINUM MEMBERSHIP',
-        tagClass:    'gold-tag',
-        name:        'Platinum Membership',
-        tagline:     'Credit Repair Elite Plan',
-        desc:        'Our highest-level plan with everything in Silver and Gold, plus premium support and advanced monitoring benefits.',
-        startAmount: 499,
-        displayAmt:  '$499.00',
-        priceBig:    '499',
-        billingNote: 'then $249/month',
-        creditMonitoring: 'Credit Monitoring not Included',
-        duration:    'Average completion time: 3 months',
-        features: [
-            'Everything included in Silver Plan',
-            'Everything included in Gold Plan',
-            'Identity theft assistance & resolution',
-            '24/7 credit monitoring with real-time alerts',
-            'Full FCRA, FDCPA & FCBA legal leverage',
-            'Dedicated credit advisor support',
-            'Average completion time: 3 months'
-        ],
-        buttonText: 'Start Platinum Plan',
-        buttonLink: '/accept-checkout?plan=platinum'
-    }
-};
+// Built from config/plans.php — single source of truth.
+var PLANS = @json(collect(config('plans.plans'))->mapWithKeys(function ($p, $k) {
+    return [$k => [
+        'tag'         => '✦ ' . $p['tag'],
+        'tagClass'    => $p['tag_class'],
+        'name'        => $p['label'],
+        'tagline'     => $p['tagline'],
+        'desc'        => $p['desc'],
+        'displayAmt'  => '$' . number_format((float) $p['amount'], 2),
+        'priceBig'    => $p['price_big'],
+        'amount'      => $p['amount'],
+        'recurring'   => $p['recurring'],
+        'compareAt'   => $p['compare_at'] ? '$' . rtrim(rtrim(number_format((float) $p['compare_at'], 2), '0'), '.') : null,
+        'save'        => $p['save'],
+        'billingNote' => $p['billing_note'],
+        'isCouples'   => (bool) ($p['is_couples'] ?? false),
+        'features'    => array_values($p['features']),
+    ]];
+}));
+var DEFAULT_PLAN = @json(config('plans.default', 'onetime'));
 
         // ════════════════════════════════════════════════
         // READ PLAN FROM URL PARAM
-        // e.g. /accept-checkout?plan=gold
+        // e.g. /accept-checkout?plan=onetime
         // ════════════════════════════════════════════════
         function getUrlParam(key) {
             var params = new URLSearchParams(window.location.search);
             return params.get(key);
         }
         
-        var planKey = getUrlParam('plan') || 'platinum';
-        if (!PLANS[planKey]) planKey = 'platinum'; // safety fallback
-        
+        var planKey = getUrlParam('plan') || DEFAULT_PLAN;
+        if (!PLANS[planKey]) planKey = DEFAULT_PLAN; // safety fallback
+
         var plan = PLANS[planKey];
 
     // ════ POPULATE SIDEBAR ════
     document.getElementById('planTag').className    = 'plan-tag ' + plan.tagClass;
-    document.getElementById('planTag').textContent  = '✦ ' + plan.tag;
+    document.getElementById('planTag').textContent  = plan.tag;
     document.getElementById('planName').textContent = plan.name;
     document.getElementById('planTagline').textContent = plan.tagline;
     document.getElementById('planDesc').textContent = plan.desc;
@@ -1549,6 +1492,26 @@ var PLANS = {
     document.getElementById('priceBig').textContent       = plan.priceBig;
     document.getElementById('priceBillingNote').textContent = plan.billingNote;
     document.getElementById('selected_plan').value = planKey;
+
+    // Strike-through "was" price + savings badge (only when applicable)
+    (function () {
+        var rowAmt = document.getElementById('priceRowAmount');
+        if (plan.compareAt) {
+            var was = document.createElement('span');
+            was.textContent = plan.compareAt + '  ';
+            was.style.cssText = 'text-decoration:line-through;color:var(--text-light);font-weight:600;margin-right:6px;';
+            rowAmt.parentNode.insertBefore(was, rowAmt);
+        }
+        if (plan.save) {
+            var tot = document.querySelector('.price-total-label');
+            if (tot) {
+                var s = document.createElement('span');
+                s.textContent = 'SAVE $' + plan.save;
+                s.style.cssText = 'display:inline-block;margin-left:8px;background:var(--green);color:#fff;font-size:10px;font-weight:800;letter-spacing:.5px;padding:3px 9px;border-radius:100px;vertical-align:middle;';
+                tot.appendChild(s);
+            }
+        }
+    })();
 
     // Features
     var ul = document.getElementById('planFeatures');

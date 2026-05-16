@@ -315,9 +315,9 @@
     data: {
       labels: @json(array_column($newSubsSeries, 'label')),
       datasets: [
-        { label: 'Silver',   data: @json(array_column($newSubsSeries, 'silver')),   backgroundColor: '#94a3b8' },
-        { label: 'Gold',     data: @json(array_column($newSubsSeries, 'gold')),     backgroundColor: '#b8a449' },
-        { label: 'Platinum', data: @json(array_column($newSubsSeries, 'platinum')), backgroundColor: '#475569' },
+        @foreach ($planSeriesMeta as $pm)
+        { label: @json($pm['label']), data: @json(array_column($newSubsSeries, $pm['key'])), backgroundColor: @json($pm['color']) },
+        @endforeach
       ]
     },
     options: {

@@ -14,6 +14,7 @@ class ReferralMiddleware
         'EL',
         'NL',
         'EXP',
+        'LAL',
     ];
 
     public function handle(Request $request, Closure $next): Response

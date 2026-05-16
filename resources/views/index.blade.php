@@ -1381,12 +1381,13 @@ color:#fff !important;
   .pricing-section .acc{color:#22c55e}
   .pricing-section .lead{font-size:15px;color:#64748b;font-weight:500}
 
-  .pricing-section .pg{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;max-width:1080px;margin:0 auto}
-  @media(max-width:860px){.pricing-section .pg{grid-template-columns:1fr;max-width:420px}}
+  .pricing-section .pg{display:grid;grid-template-columns:repeat(4,1fr);gap:22px;max-width:1340px;margin:0 auto}
+  @media(max-width:1180px){.pricing-section .pg{grid-template-columns:repeat(2,1fr);max-width:760px}}
+  @media(max-width:620px){.pricing-section .pg{grid-template-columns:1fr;max-width:420px}}
 
   /* ── CARD BASE ── */
   .pricing-section .pc{
-    border-radius:28px;padding:42px 34px 38px;position:relative;overflow:hidden;
+    border-radius:26px;padding:36px 26px 32px;position:relative;overflow:hidden;
     display:flex;flex-direction:column;cursor:default;
     opacity:0;transform:translateY(50px) scale(.95);
     transition:
@@ -1397,8 +1398,9 @@ color:#fff !important;
     transform-style:preserve-3d;
   }
   .pricing-section .pc.vis{animation:ps-cardIn .75s cubic-bezier(.16,1,.3,1) forwards}
-  .pricing-section .d1{animation-delay:.18s!important}
-  .pricing-section .d2{animation-delay:.36s!important}
+  .pricing-section .d1{animation-delay:.14s!important}
+  .pricing-section .d2{animation-delay:.28s!important}
+  .pricing-section .d3{animation-delay:.42s!important}
   @keyframes ps-cardIn{to{opacity:1;transform:translateY(0) scale(1)}}
   @keyframes ps-fadeUp{to{opacity:1;transform:translateY(0)}}
 
@@ -1435,6 +1437,17 @@ color:#fff !important;
   }
   .pricing-section .cr:hover{
     box-shadow:0 40px 90px rgba(220,38,38,.55),0 12px 32px rgba(220,38,38,.35),0 0 0 1px rgba(255,255,255,.3),inset 0 1px 0 rgba(255,255,255,.3)!important;
+    filter:brightness(1.06);
+  }
+
+  /* ── BLUE (NEW — VIP) ── */
+  .pricing-section .cb{
+    background:linear-gradient(145deg,#3b82f6 0%,#2563eb 45%,#1d4ed8 100%);
+    box-shadow:0 16px 48px rgba(37,99,235,.4),0 4px 12px rgba(37,99,235,.25),inset 0 1px 0 rgba(255,255,255,.25);
+    border:1.5px solid rgba(255,255,255,.2);
+  }
+  .pricing-section .cb:hover{
+    box-shadow:0 40px 90px rgba(37,99,235,.55),0 12px 32px rgba(37,99,235,.35),0 0 0 1px rgba(255,255,255,.3),inset 0 1px 0 rgba(255,255,255,.3)!important;
     filter:brightness(1.06);
   }
 
@@ -1576,6 +1589,13 @@ color:#fff !important;
   .pricing-section .btn-r{background:#fff;color:#991b1b;box-shadow:0 4px 20px rgba(0,0,0,.15)}
   .pricing-section .btn-r:hover{transform:translateY(-3px) scale(1.02);box-shadow:0 10px 30px rgba(0,0,0,.22);background:#fff1f1}
 
+  .pricing-section .btn-b{background:#fff;color:#1d4ed8;box-shadow:0 4px 20px rgba(0,0,0,.15)}
+  .pricing-section .btn-b:hover{transform:translateY(-3px) scale(1.02);box-shadow:0 10px 30px rgba(0,0,0,.22);background:#eff6ff}
+
+  /* ── COMPARE / SAVE ── */
+  .pricing-section .pcmp{font-size:14px;color:rgba(255,255,255,.6);font-weight:700;text-decoration:line-through;margin-bottom:2px;height:18px}
+  .pricing-section .psave{display:inline-block;background:rgba(255,255,255,.2);color:#fff;font-size:11px;font-weight:800;letter-spacing:.5px;padding:4px 12px;border-radius:100px;margin-bottom:14px}
+
   /* ── FLOATING PARTICLES ── */
   .pricing-section .pt{
     position:absolute;border-radius:50%;background:rgba(255,255,255,.1);
@@ -1609,71 +1629,34 @@ color:#fff !important;
 
     <div class="pg">
 
-<!-- GREEN -->
-<div class="pc cg" id="ps-c0">
-  <div class="glow" id="ps-g0"></div>
+{{-- Cards driven by config/plans.php — single source of truth --}}
+@php $ps_i = 0; @endphp
+@foreach (config('plans.plans') as $ps_key => $ps_plan)
+<div class="pc {{ $ps_plan['color'] }}{{ $ps_i > 0 ? ' d'.$ps_i : '' }}" id="ps-c{{ $ps_i }}">
+  <div class="glow" id="ps-g{{ $ps_i }}"></div>
   <div class="orb orb1"></div><div class="orb orb2"></div>
-  <div class="pplan">Silver Membership</div>
-  <div class="pamt"><sup>$</sup>299</div>
-  <div class="pper">one-time start – then $149/month</div>
-  <div class="pcmn">Credit Monitoring Required</div>
+  @if (!empty($ps_plan['badge']))
+  <div class="badge">{{ $ps_plan['badge'] }}</div>
+  @endif
+  <div class="pplan">{{ $ps_plan['label'] }}</div>
+  <div class="pcmp">@if (!empty($ps_plan['compare_at']))${{ rtrim(rtrim(number_format((float) $ps_plan['compare_at'], 2), '0'), '.') }}@endif</div>
+  <div class="pamt"><sup>$</sup>{{ $ps_plan['price_big'] }}</div>
+  <div class="pper">{{ $ps_plan['period'] }}</div>
+  @if (!empty($ps_plan['save']))
+  <div class="psave">SAVE ${{ $ps_plan['save'] }}</div>
+  @else
+  <div class="pcmn">{{ $ps_plan['sub_note'] ?? '' }}</div>
+  @endif
   <div class="phr"></div>
   <ul class="pfeats">
-    <li><span class="pfc">✓</span>Average completion time: 8 months</li>
-    <li><span class="pfc">✓</span>Disputing late payments</li>
-    <li><span class="pfc">✓</span>Disputing collections</li>
-    <li><span class="pfc">✓</span>Disputing charge offs</li>
-    <li><span class="pfc">✓</span>Disputing hard inquiries</li>
-    <li><span class="pfc">✓</span>Personal information updates</li>
-    <li><span class="pfc">✓</span>Unlimited rounds of factual disputes to bureaus, creditors &amp; collection agencies</li>
-    <li><span class="pfc">✓</span>24/7 secure client portal access</li>
+    @foreach ($ps_plan['features'] as $ps_feat)
+    <li><span class="pfc">✓</span>{{ $ps_feat }}</li>
+    @endforeach
   </ul>
-  <a href="/accept-checkout?plan=silver" class="btn btn-g">Start Silver Plan</a>
+  <a href="/accept-checkout?plan={{ $ps_key }}" class="btn {{ $ps_plan['btn'] }}">{{ $ps_plan['cta'] }}</a>
 </div>
-
-<!-- ORANGE -->
-<div class="pc co d1" id="ps-c1">
-  <div class="glow" id="ps-g1"></div>
-  <div class="orb orb1"></div><div class="orb orb2"></div>
-  <div class="pplan">Gold Membership</div>
-  <div class="pamt"><sup>$</sup>399</div>
-  <div class="pper">one-time start – then $199/month</div>
-  <div class="pcmn">Credit Monitoring Required</div>
-  <div class="phr"></div>
-  <ul class="pfeats">
-    <li><span class="pfc">✓</span>Average completion time: 6 months</li>
-    <li><span class="pfc">✓</span>Everything included in Silver Plan</li>
-    <li><span class="pfc">✓</span>Disputing repossessions</li>
-    <li><span class="pfc">✓</span>Disputing bankruptcies</li>
-    <li><span class="pfc">✓</span>Disputing student loans</li>
-    <li><span class="pfc">✓</span>Disputing medical bills</li>
-    <li><span class="pfc">✓</span>Disputing child support items</li>
-    <li><span class="pfc">✓</span>Unlimited rounds of factual disputes utilizing FCRA & FDCPA</li>
-  </ul>
-  <a href="/accept-checkout?plan=gold" class="btn btn-o">Start Gold Plan</a>
-</div>
-
-<!-- RED -->
-<div class="pc cr d2" id="ps-c2">
-  <div class="glow" id="ps-g2"></div>
-  <div class="orb orb1"></div><div class="orb orb2"></div>
-  <div class="badge">POPULAR</div>
-  <div class="pplan">Platinum Membership</div>
-  <div class="pamt"><sup>$</sup>499</div>
-  <div class="pper">one-time start – then $249/month</div>
-  <div class="pcmn">Credit Monitoring Required</div>
-  <div class="phr"></div>
-  <ul class="pfeats">
-    <li><span class="pfc">✓</span>Average completion time: 3 months</li>
-    <li><span class="pfc">✓</span>Everything included in Silver Plan</li>
-    <li><span class="pfc">✓</span>Everything included in Gold Plan</li>
-    <li><span class="pfc">✓</span>Identity theft assistance &amp; resolution</li>
-    <li><span class="pfc">✓</span>24/7 credit monitoring with real-time alerts</li>
-    <li><span class="pfc">✓</span>Full FCRA, FDCPA legal leverage</li>
-    <li><span class="pfc">✓</span>Dedicated credit advisor support</li>
-  </ul>
-  <a href="/accept-checkout?plan=platinum" class="btn btn-r">Start Platinum Plan</a>
-</div>
+@php $ps_i++; @endphp
+@endforeach
 
     </div>
   </div>
@@ -1707,15 +1690,13 @@ color:#fff !important;
   }
 
   // Magnetic cursor glow
-  const glowIds = ['ps-g0','ps-g1','ps-g2'];
   cards.forEach((card, i) => {
-    const glow = document.getElementById(glowIds[i]);
+    const glow = card.querySelector('.glow');
     card.addEventListener('mousemove', e => {
       const r = card.getBoundingClientRect();
       const x = e.clientX - r.left;
       const y = e.clientY - r.top;
-      glow.style.left = x + 'px';
-      glow.style.top = y + 'px';
+      if (glow) { glow.style.left = x + 'px'; glow.style.top = y + 'px'; }
       const cx = r.width / 2, cy = r.height / 2;
       const dx = (x - cx) / cx;
       const dy = (y - cy) / cy;

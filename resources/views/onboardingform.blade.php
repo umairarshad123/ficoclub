@@ -268,6 +268,18 @@
 <section class="form-section" id="section-form">
   <div class="form-section-inner">
 
+    @if (!empty($isCouples) && !empty($partner))
+    <div style="max-width:760px;margin:0 auto 22px;background:linear-gradient(135deg,#0d1b3e,#1a2f5e);border:1.5px solid #22c55e;border-radius:16px;padding:16px 22px;display:flex;align-items:center;gap:14px;color:#fff;box-shadow:0 8px 28px rgba(13,27,62,.18)">
+      <div style="width:42px;height:42px;border-radius:50%;background:#22c55e;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">{{ $partner === 'husband' ? '🤵' : '👰' }}</div>
+      <div style="flex:1">
+        <div style="font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:#86efac">Couples Glow-Up · {{ $partner === 'husband' ? 'Step 1 of 2' : 'Step 2 of 2' }}</div>
+        <div style="font-size:17px;font-weight:900;margin-top:2px">{{ ucfirst($partner) }}'s Enrollment</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.7);margin-top:2px">After submitting, you'll return to the couples hub {{ $partner === 'husband' ? 'to enroll your partner' : '— both enrollments complete!' }}.</div>
+      </div>
+      <a href="{{ route('couples.hub') }}" style="color:#86efac;font-size:12px;font-weight:700;text-decoration:none;white-space:nowrap">← Back to hub</a>
+    </div>
+    @endif
+
     <!-- Progress -->
     <div class="prog-wrap reveal" id="progWrap">
       <div class="prog-steps">
@@ -826,6 +838,8 @@ const submitForm=function(form){
   xmlHttp.onreadystatechange=function(){
     if(xmlHttp.readyState==4&&xmlHttp.status==200){
       btn.classList.remove('loading');btn.disabled=false;
+      // ── Couples flow: stay inside our funnel instead of the CRM portal ──
+      if(window.COUPLES_PARTNER){ finishCouplesPartner(); return; }
       var redirectUrl=xmlHttp.responseText;
       if(redirectUrl!==""&&!redirectUrl.includes("Account is in-activated")){
         if(redirectUrl.includes("para=1"))redirectUrl+="&firstname="+firstName+"&lastname="+lastName+"&bill_address="+currentAddress+"&bill_city="+city+"&bill_state="+state+"&bill_zip="+zipCode+"&phone="+mobilePhone+"&email="+email+"&pGUID="+btoa(userPassword);
@@ -834,7 +848,7 @@ const submitForm=function(form){
       }else if(redirectUrl.includes("Account is in-activated")){
         alert("Account Inactive: We apologize, but the service associated with this link is currently inactive. Please contact the business or individual who provided you with this link for further assistance.");
       }else{showSuccess();}
-    }else if(xmlHttp.readyState==4){btn.classList.remove('loading');btn.disabled=false;showSuccess();}
+    }else if(xmlHttp.readyState==4){btn.classList.remove('loading');btn.disabled=false;if(window.COUPLES_PARTNER){finishCouplesPartner();return;}showSuccess();}
   };
   xmlHttp.open("post","https://pulse.disputeprocess.com/CustumFieldController?method=addWebFormData");
   xmlHttp.send(formData);
@@ -856,6 +870,29 @@ function showSuccess(){
   document.getElementById('cardHead').style.display='none';
   document.getElementById('trustStrip').style.display='none';
   document.getElementById('section-form').scrollIntoView({behavior:'smooth'});
+}
+
+// ── Couples Glow-Up two-person flow ──────────────────────────────────────
+@if (!empty($isCouples) && !empty($partner))
+window.COUPLES_PARTNER = @json($partner);
+@else
+window.COUPLES_PARTNER = null;
+@endif
+
+function finishCouplesPartner(){
+  try{
+    var ov=document.createElement('div');
+    ov.style.cssText='position:fixed;inset:0;background:rgba(13,27,62,.92);z-index:99999;display:flex;align-items:center;justify-content:center;color:#fff;font-family:inherit;font-size:18px;font-weight:800;text-align:center;padding:24px';
+    ov.innerHTML='✓ '+(window.COUPLES_PARTNER.charAt(0).toUpperCase()+window.COUPLES_PARTNER.slice(1))+' enrolled.<br><span style="font-size:14px;font-weight:600;color:#86efac">Returning to your couples hub…</span>';
+    document.body.appendChild(ov);
+  }catch(e){}
+  fetch(@json(route('couples.complete')),{
+    method:'POST',
+    headers:{'Content-Type':'application/json','X-CSRF-TOKEN':@json(csrf_token()),'Accept':'application/json'},
+    body:JSON.stringify({partner:window.COUPLES_PARTNER})
+  }).then(function(r){return r.json();}).then(function(d){
+    window.location.href=(d&&d.redirect)?d.redirect:@json(route('couples.hub'));
+  }).catch(function(){ window.location.href=@json(route('couples.hub')); });
 }
 
 updateUI(1);

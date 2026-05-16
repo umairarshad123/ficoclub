@@ -28,6 +28,7 @@ class DashboardController extends Controller
             'kpis'              => $this->buildKpis(),
             'mrrSeries'         => $this->buildMrrSeries(),
             'newSubsSeries'     => $this->buildNewSubsSeries(),
+            'planSeriesMeta'    => $this->planSeriesMeta(),
             'referralBreakdown' => $this->buildReferralBreakdown(),
             'recentSubs'        => Subscription::orderByDesc('created_at')->limit(10)->get(),
             'activityFeed'      => $this->buildActivityFeed(20),
@@ -652,12 +653,57 @@ class DashboardController extends Controller
     /**
      * MRR + churn + customer count broken out by plan_key.
      */
+    /**
+     * Plan keys to report on: the live catalog (config/plans.php) plus any
+     * legacy keys still present in the DB (silver/gold/platinum) so history
+     * is never lost.
+     */
+    private function planKeyList(): array
+    {
+        $catalog = config('plans.plans', []);
+        $keys    = array_keys($catalog);
+
+        $legacy = Subscription::query()
+            ->select('plan_key')
+            ->distinct()
+            ->pluck('plan_key')
+            ->filter()
+            ->all();
+
+        foreach ($legacy as $lk) {
+            if (!in_array($lk, $keys, true)) {
+                $keys[] = $lk;
+            }
+        }
+        return $keys;
+    }
+
+    private function planLabel(string $key): string
+    {
+        return config("plans.plans.$key.label", ucfirst($key));
+    }
+
+    /** key → label + chart colour, for the stacked signups chart. */
+    private function planSeriesMeta(): array
+    {
+        $palette = ['#22c55e', '#f97316', '#dc2626', '#2563eb', '#94a3b8', '#b8a449', '#475569', '#0ea5e9'];
+        $meta = [];
+        foreach ($this->planKeyList() as $i => $key) {
+            $meta[] = [
+                'key'   => $key,
+                'label' => $this->planLabel($key),
+                'color' => $palette[$i % count($palette)],
+            ];
+        }
+        return $meta;
+    }
+
     private function buildPlanMix(): array
     {
-        $plans = ['silver', 'gold', 'platinum'];
+        $plans = $this->planKeyList();
         $out = [];
         foreach ($plans as $key) {
-            $label = ucfirst($key);
+            $label = $this->planLabel($key);
             $active    = Subscription::where('plan_key', $key)->where('status', 'active')->count();
             $pastDue   = Subscription::where('plan_key', $key)->where('status', 'past_due')->count();
             $cancelled = Subscription::where('plan_key', $key)->whereIn('status', self::CANCELLED_STATUSES)->count();
@@ -736,18 +782,20 @@ class DashboardController extends Controller
             ->groupBy('ym', 'plan_key')
             ->get();
 
+        $planKeys = $this->planKeyList();
+
         $months = [];
         $cursor = $start->copy();
         for ($i = 0; $i < 12; $i++) {
-            $months[$cursor->format('Y-m')] = [
-                'label'    => $cursor->format('M Y'),
-                'silver'   => 0, 'gold' => 0, 'platinum' => 0,
-            ];
+            $row = ['label' => $cursor->format('M Y')];
+            foreach ($planKeys as $pk) { $row[$pk] = 0; }
+            $months[$cursor->format('Y-m')] = $row;
             $cursor->addMonth();
         }
         foreach ($rows as $r) {
             if (! isset($months[$r->ym])) { continue; }
-            $plan = in_array($r->plan_key, ['silver','gold','platinum'], true) ? $r->plan_key : 'silver';
+            $plan = in_array($r->plan_key, $planKeys, true) ? $r->plan_key : ($planKeys[0] ?? 'unknown');
+            if (!isset($months[$r->ym][$plan])) { $months[$r->ym][$plan] = 0; }
             $months[$r->ym][$plan] += (int) $r->cnt;
         }
         return array_values($months);

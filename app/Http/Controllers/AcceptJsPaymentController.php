@@ -69,7 +69,7 @@ class AcceptJsPaymentController extends Controller
             'state'            => 'required|string|max:10',
             'zip'              => 'required|string|max:20',
             'cardName'         => 'required|string|max:150',
-            'selected_plan'    => 'nullable|string|in:silver,gold,platinum',
+            'selected_plan'    => 'nullable|string|in:' . implode(',', array_keys(config('plans.plans'))),
             'agree_terms'      => 'required|boolean',
             'agree_privacy'    => 'required|boolean',
             'marketing_opt_in' => 'nullable|boolean',
@@ -115,28 +115,15 @@ class AcceptJsPaymentController extends Controller
             'referral_code'    => $referralCode,
         ]);
 
-                $planMap = [
-                    'silver' => [
-                        'amount'    => '299.00',
-                        'label'     => 'Silver Membership',
-                        'recurring' => '149.00',
-                    ],
-                    'gold' => [
-                        'amount'    => '399.00',
-                        'label'     => 'Gold Membership',
-                        'recurring' => '199.00',
-                    ],
-                    'platinum' => [
-                        'amount'    => '499.00',
-                        'label'     => 'Platinum Membership',
-                        'recurring' => '249.00',
-                    ],
-                ];
-                
-                $planKey      = isset($planMap[$validated['selected_plan'] ?? '']) ? $validated['selected_plan'] : 'platinum';
-                $amount       = $planMap[$planKey]['amount'];
-                $planLabel    = $planMap[$planKey]['label'];
-                $recurringAmt = $planMap[$planKey]['recurring'];
+                // Plan catalog is the single source of truth (config/plans.php)
+                $planCatalog  = config('plans.plans');
+                $defaultPlan  = config('plans.default', 'onetime');
+
+                $planKey      = isset($planCatalog[$validated['selected_plan'] ?? '']) ? $validated['selected_plan'] : $defaultPlan;
+                $amount       = $planCatalog[$planKey]['amount'];
+                $planLabel    = $planCatalog[$planKey]['label'];
+                $recurringAmt = $planCatalog[$planKey]['recurring']; // null = one-time, no ARB
+                $isCouples    = (bool) ($planCatalog[$planKey]['is_couples'] ?? false);
 
         Log::info('Plan resolved from request', [
             'selected_plan_input' => $validated['selected_plan'] ?? null,
@@ -293,7 +280,7 @@ class AcceptJsPaymentController extends Controller
                 ]);
 
                 // ═══════════════════════════════════════════════════════════════
-                // SUBSCRIPTION FLOW — silver, gold, and platinum plans
+                // SUBSCRIPTION FLOW — only plans with a recurring amount (monthly)
                 // ═══════════════════════════════════════════════════════════════
                 $customerProfileId        = null;
                 $customerPaymentProfileId = null;
@@ -563,6 +550,18 @@ class AcceptJsPaymentController extends Controller
                 }
                 // ─────────────────────────────────────────────────────────────
 
+                // Couples plan → route into the husband/wife onboarding hub.
+                $redirectPath = $isCouples ? '/couples-onboarding' : '/onboardingform';
+
+                if ($isCouples) {
+                    session([
+                        'couples_flow'        => true,
+                        'couples_invoice'     => $invoiceNumber,
+                        'couples_husband_done'=> false,
+                        'couples_wife_done'   => false,
+                    ]);
+                }
+
                 session([
                     'acceptjs_payment_success' => true,
                     'acceptjs_invoice_number'  => $invoiceNumber,
@@ -645,7 +644,8 @@ class AcceptJsPaymentController extends Controller
                     'invoice'        => $invoiceNumber,
                     'transaction_id' => $transId,
                     'referral_code'  => $referralCode,
-                    'redirect'       => url('/onboardingform'),
+                    'is_couples'     => $isCouples,
+                    'redirect'       => url($redirectPath),
                 ]);
 
                 return response()->json([
@@ -653,7 +653,7 @@ class AcceptJsPaymentController extends Controller
                     'message'     => 'Payment successful.',
                     'invoice'     => $invoiceNumber,
                     'transaction' => $transId,
-                    'redirect'    => url('/onboardingform'),
+                    'redirect'    => url($redirectPath),
                 ]);
             }
 
