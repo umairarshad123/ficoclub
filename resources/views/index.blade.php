@@ -1666,6 +1666,70 @@ color:#fff !important;
 @endforeach
 
     </div>
+
+    {{-- ───────── STEP 1 · CREDIT MONITORING — SmartCredit ───────── --}}
+    <style>
+      .sc-step{
+        max-width:1340px;margin:26px auto 0;
+        background:linear-gradient(135deg,#0f2044 0%,#16306b 55%,#0f2044 100%);
+        border:1.5px solid rgba(255,255,255,.12);
+        border-radius:26px;padding:38px 44px;
+        display:flex;align-items:center;justify-content:space-between;gap:34px;
+        position:relative;overflow:hidden;
+        box-shadow:0 18px 50px rgba(15,32,68,.35),inset 0 1px 0 rgba(255,255,255,.08);
+      }
+      .sc-step::before{
+        content:'';position:absolute;top:-60px;right:-40px;
+        width:240px;height:240px;border-radius:50%;
+        background:radial-gradient(circle,rgba(34,197,94,.22) 0%,transparent 70%);
+        pointer-events:none;
+      }
+      .sc-step-l{flex:1;min-width:0;position:relative;z-index:1}
+      .sc-eyebrow{
+        display:inline-flex;align-items:center;gap:8px;
+        background:rgba(34,197,94,.16);color:#4ade80;
+        font-size:11px;font-weight:900;letter-spacing:2px;text-transform:uppercase;
+        padding:7px 16px;border-radius:100px;margin-bottom:16px;
+      }
+      .sc-eyebrow::before{content:'';width:7px;height:7px;border-radius:50%;background:#22c55e;animation:ps-pulse 2s ease infinite}
+      .sc-step h3{
+        font-family:'Sora',sans-serif;font-size:clamp(22px,3vw,30px);
+        font-weight:900;color:#fff;line-height:1.18;margin-bottom:10px;
+      }
+      .sc-step h3 span{color:#4ade80}
+      .sc-step p{
+        font-size:14.5px;color:rgba(255,255,255,.78);line-height:1.65;
+        font-weight:500;max-width:620px;
+      }
+      .sc-step-r{flex-shrink:0;position:relative;z-index:1;text-align:center}
+      .sc-btn{
+        display:inline-flex;align-items:center;justify-content:center;gap:10px;
+        font-family:'Sora',sans-serif;font-size:15px;font-weight:800;letter-spacing:.3px;
+        padding:18px 38px;border-radius:14px;text-decoration:none;white-space:nowrap;
+        background:linear-gradient(135deg,#22c55e 0%,#16a34a 100%);color:#fff;
+        box-shadow:0 10px 28px rgba(34,197,94,.4),inset 0 1px 0 rgba(255,255,255,.25);
+        transition:transform .25s cubic-bezier(.16,1,.3,1),box-shadow .25s ease,filter .25s ease;
+      }
+      .sc-btn:hover{transform:translateY(-3px);box-shadow:0 16px 38px rgba(34,197,94,.5);filter:brightness(1.05)}
+      .sc-note{margin-top:12px;font-size:12px;color:rgba(255,255,255,.55);font-weight:600}
+      @media(max-width:860px){
+        .sc-step{flex-direction:column;align-items:flex-start;text-align:left;padding:30px 26px;gap:24px}
+        .sc-step-r{width:100%}
+        .sc-btn{width:100%}
+      }
+    </style>
+    <div class="sc-step">
+      <div class="sc-step-l">
+        <span class="sc-eyebrow">Step 1 · Credit Monitoring</span>
+        <h3>Sign Up for <span>SmartCredit</span> First</h3>
+        <p>Before we begin, set up your SmartCredit account so Anthony can pull your full 3-bureau credit report, see exactly what's hurting your score, and build your custom dispute plan. This is required to get started — it only takes 2 minutes.</p>
+      </div>
+      <div class="sc-step-r">
+        <a href="https://www.smartcredit.com/?PID=48108" target="_blank" rel="noopener" class="sc-btn">📊 Sign Up for SmartCredit →</a>
+        <div class="sc-note">Opens in a new tab · Then choose your plan above</div>
+      </div>
+    </div>
+
   </div>
 </div>
 
