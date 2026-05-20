@@ -88,6 +88,9 @@ return [
             'features'     => [
                 'Public records: bankruptcies, repossessions, student loans, medical bills & child support addressed',
                 '3–4 months of factual disputing',
+                'Aggressive 3-bureau attack (Equifax · Experian · TransUnion)',
+                'Dedicated specialist for heavy public-records items',
+                'Monthly progress reports + live score tracking',
                 '24/7 client portal access',
             ],
         ],
