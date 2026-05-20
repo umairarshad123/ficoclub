@@ -8,7 +8,7 @@
 | Every layer of the app reads pricing from here:
 |   - AcceptJsPaymentController  (Authorize.Net charge + ARB recurring)
 |   - OnboardingFormController   (post-payment enrollment form)
-|   - CouplesController          (couples 2-person flow)
+|   - CouplesController          (legacy two-person flow — kept for historical subs)
 |   - resources/views/index.blade.php           (public pricing cards)
 |   - resources/views/payments/accept-checkout  (branded checkout sidebar)
 |   - Admin DashboardController  (plan-mix analytics)
@@ -55,10 +55,11 @@ return [
             'is_couples'   => false,
             'cta'          => 'Get Started',
             'features'     => [
-                'Full 90-day credit transformation roadmap',
                 'Aggressive 3-bureau disputes (Equifax · Experian · TransUnion)',
                 'Collections, charge-offs & late payments challenged',
+                'Public records: bankruptcies, repossessions, student loans, medical bills & child support addressed',
                 'Monthly progress reports + live score tracking',
+                '24/7 client portal access',
                 'Cancel anytime after 90 days — no lock-in',
             ],
         ],
@@ -70,11 +71,11 @@ return [
             'tag'          => 'ONE-TIME PLAN',
             'tagline'      => 'Single Payment · Zero Recurring',
             'desc'         => 'One single payment. Priority dispute filing plus ongoing support and lifetime credit guidance.',
-            'amount'       => '497.00',
+            'amount'       => '697.00',
             'recurring'    => null,
-            'compare_at'   => '694.00',
+            'compare_at'   => '894.00',
             'save'         => '197',
-            'price_big'    => '497',
+            'price_big'    => '697',
             'period'       => 'one-time payment',
             'billing_note' => 'one-time payment · zero recurring',
             'sub_note'     => 'Pay once, done',
@@ -87,43 +88,42 @@ return [
             'features'     => [
                 'One single payment — zero recurring, ever',
                 'Aggressive priority disputes across all 3 bureaus',
+                'Public records: bankruptcies, repossessions, student loans, medical bills & child support addressed',
                 'Fast-tracked results in 30–45 days',
-                'Ongoing support until items are resolved',
+                '24/7 client portal access',
                 'Lifetime credit guidance + funding readiness',
             ],
         ],
 
         // ───────────────────────────── RED ───────────────────────────────
-        'couples' => [
-            'key'          => 'couples',
-            'label'        => 'Couples Plan',
-            'tag'          => 'COUPLES PLAN',
-            'tagline'      => '2 Plans · 1 Price',
-            'desc'         => 'For two. A coordinated 3-bureau attack so you and your partner restore credit and prep funding together.',
-            'amount'       => '900.00',
+        'public_records' => [
+            'key'          => 'public_records',
+            'label'        => 'Public Records Plan',
+            'tag'          => 'PUBLIC RECORDS PLAN',
+            'tagline'      => 'Factual Disputing · Heavy Items',
+            'desc'         => 'Built for the heavy public-records hits: bankruptcies, repossessions, student loans, medical bills and child support — addressed with 3–4 months of factual disputing.',
+            'amount'       => '497.00',
             'recurring'    => null,
             'compare_at'   => null,
             'save'         => null,
-            'price_big'    => '900',
-            'period'       => '2 plans, 1 price',
-            'billing_note' => '2 plans, 1 price · one-time',
-            'sub_note'     => 'For two partners',
+            'price_big'    => '497',
+            'period'       => 'one-time · 3–4 month program',
+            'billing_note' => 'one-time payment · 3–4 month program',
+            'sub_note'     => 'Heavy public-records work',
             'color'        => 'cr',
             'btn'          => 'btn-r',
             'tag_class'    => 'gold-tag',
             'badge'        => null,
-            'is_couples'   => true,
-            'cta'          => 'Apply As Couple',
+            'is_couples'   => false,
+            'cta'          => 'Start Public Records',
             'features'     => [
-                'Two complete credit programs — one combined price',
-                'Aggressive dual 3-bureau restoration for both partners',
-                'Coordinated, synchronized bureau-attack strategy',
-                'Joint funding & mortgage-readiness preparation',
-                'Shared progress dashboard for both partners',
+                'Public records: bankruptcies, repossessions, student loans, medical bills & child support addressed',
+                '3–4 months of factual disputing',
+                '24/7 client portal access',
             ],
         ],
 
-        // ───────────────────────────── BLUE (NEW) ────────────────────────
+        // ───────────────────────────── BLUE ──────────────────────────────
         'vip' => [
             'key'          => 'vip',
             'label'        => 'VIP Plan',
@@ -147,8 +147,9 @@ return [
             'features'     => [
                 'Done-with-you white-glove priority service',
                 'Direct text line to Anthony — answers in minutes',
+                'Public records: bankruptcies, repossessions, student loans, medical bills & child support addressed',
                 'Weekly 1-on-1 progress strategy calls',
-                'Aggressive priority disputes + escalation handling',
+                '24/7 client portal access',
                 'Lender & funding introductions + lifetime guidance',
             ],
         ],

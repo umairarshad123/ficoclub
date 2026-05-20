@@ -1138,7 +1138,7 @@
 {{--
 PLAN DATA — passed via URL query param from index.blade.php
 Expected param:
-plan   = monthly | onetime | couples | vip   (see config/plans.php)
+plan   = monthly | onetime | public_records | vip   (see config/plans.php)
 Fallback = config('plans.default') if nothing/invalid passed
 --}}
 
