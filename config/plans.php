@@ -64,6 +64,34 @@ return [
             ],
         ],
 
+        // ───────────────────────────── RED ───────────────────────────────
+        'public_records' => [
+            'key'          => 'public_records',
+            'label'        => 'Public Records Plan',
+            'tag'          => 'PUBLIC RECORDS PLAN',
+            'tagline'      => 'Factual Disputing · Heavy Items',
+            'desc'         => 'Built for the heavy public-records hits: bankruptcies, repossessions, student loans, medical bills and child support — addressed with 3–4 months of factual disputing.',
+            'amount'       => '497.00',
+            'recurring'    => null,
+            'compare_at'   => null,
+            'save'         => null,
+            'price_big'    => '497',
+            'period'       => 'one-time · 3–4 month program',
+            'billing_note' => 'one-time payment · 3–4 month program',
+            'sub_note'     => 'Heavy public-records work',
+            'color'        => 'cr',
+            'btn'          => 'btn-r',
+            'tag_class'    => 'gold-tag',
+            'badge'        => null,
+            'is_couples'   => false,
+            'cta'          => 'Start Public Records',
+            'features'     => [
+                'Public records: bankruptcies, repossessions, student loans, medical bills & child support addressed',
+                '3–4 months of factual disputing',
+                '24/7 client portal access',
+            ],
+        ],
+
         // ───────────────────────────── ORANGE ────────────────────────────
         'onetime' => [
             'key'          => 'onetime',
@@ -92,34 +120,6 @@ return [
                 'Fast-tracked results in 30–45 days',
                 '24/7 client portal access',
                 'Lifetime credit guidance + funding readiness',
-            ],
-        ],
-
-        // ───────────────────────────── RED ───────────────────────────────
-        'public_records' => [
-            'key'          => 'public_records',
-            'label'        => 'Public Records Plan',
-            'tag'          => 'PUBLIC RECORDS PLAN',
-            'tagline'      => 'Factual Disputing · Heavy Items',
-            'desc'         => 'Built for the heavy public-records hits: bankruptcies, repossessions, student loans, medical bills and child support — addressed with 3–4 months of factual disputing.',
-            'amount'       => '497.00',
-            'recurring'    => null,
-            'compare_at'   => null,
-            'save'         => null,
-            'price_big'    => '497',
-            'period'       => 'one-time · 3–4 month program',
-            'billing_note' => 'one-time payment · 3–4 month program',
-            'sub_note'     => 'Heavy public-records work',
-            'color'        => 'cr',
-            'btn'          => 'btn-r',
-            'tag_class'    => 'gold-tag',
-            'badge'        => null,
-            'is_couples'   => false,
-            'cta'          => 'Start Public Records',
-            'features'     => [
-                'Public records: bankruptcies, repossessions, student loans, medical bills & child support addressed',
-                '3–4 months of factual disputing',
-                '24/7 client portal access',
             ],
         ],
 
