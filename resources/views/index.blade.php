@@ -1717,6 +1717,12 @@ color:#fff !important;
   <div class="badge-wrap"><div class="badge">{{ $ps_plan['badge'] }}</div></div>
   @endif
   <div class="pplan">{{ $ps_plan['label'] }}</div>
+  @if ($ps_key === 'monthly')
+  <div class="pcmp">&nbsp;</div>
+  <div class="pamt"><sup>$</sup>100<span style="font-size:18px;font-weight:700;letter-spacing:.5px;margin-left:6px;opacity:.9">/mo</span></div>
+  <div class="pper">Due today: one-time fee of $197</div>
+  <div class="psave">SAVE ${{ $ps_plan['save'] }}</div>
+  @else
   <div class="pcmp">@if (!empty($ps_plan['compare_at']))${{ rtrim(rtrim(number_format((float) $ps_plan['compare_at'], 2), '0'), '.') }}@endif</div>
   <div class="pamt"><sup>$</sup>{{ $ps_plan['price_big'] }}</div>
   <div class="pper">{{ $ps_plan['period'] }}</div>
@@ -1724,6 +1730,7 @@ color:#fff !important;
   <div class="psave">SAVE ${{ $ps_plan['save'] }}</div>
   @else
   <div class="pcmn">{{ $ps_plan['sub_note'] ?? '' }}</div>
+  @endif
   @endif
   <div class="phr"></div>
   <ul class="pfeats">
