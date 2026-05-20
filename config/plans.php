@@ -45,7 +45,7 @@ return [
             'compare_at'   => '297.00',
             'save'         => '100',
             'price_big'    => '197',
-            'period'       => 'today, then $100/month',
+            'period'       => 'due today, then $100/month',
             'billing_note' => 'then $100/month · cancel after 90 days',
             'sub_note'     => 'Cancel after 90 days',
             'color'        => 'cg',

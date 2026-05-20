@@ -1634,43 +1634,10 @@ color:#fff !important;
       <p class="lead">Every plan includes real-time updates of your credit report.</p>
     </div>
 
-    <div class="pg">
-
-{{-- Cards driven by config/plans.php — single source of truth --}}
-@php $ps_i = 0; @endphp
-@foreach (config('plans.plans') as $ps_key => $ps_plan)
-<div class="pc {{ $ps_plan['color'] }}{{ $ps_i > 0 ? ' d'.$ps_i : '' }}" id="ps-c{{ $ps_i }}">
-  <div class="glow" id="ps-g{{ $ps_i }}"></div>
-  <div class="orb orb1"></div><div class="orb orb2"></div>
-  @if (!empty($ps_plan['badge']))
-  <div class="badge-wrap"><div class="badge">{{ $ps_plan['badge'] }}</div></div>
-  @endif
-  <div class="pplan">{{ $ps_plan['label'] }}</div>
-  <div class="pcmp">@if (!empty($ps_plan['compare_at']))${{ rtrim(rtrim(number_format((float) $ps_plan['compare_at'], 2), '0'), '.') }}@endif</div>
-  <div class="pamt"><sup>$</sup>{{ $ps_plan['price_big'] }}</div>
-  <div class="pper">{{ $ps_plan['period'] }}</div>
-  @if (!empty($ps_plan['save']))
-  <div class="psave">SAVE ${{ $ps_plan['save'] }}</div>
-  @else
-  <div class="pcmn">{{ $ps_plan['sub_note'] ?? '' }}</div>
-  @endif
-  <div class="phr"></div>
-  <ul class="pfeats">
-    @foreach ($ps_plan['features'] as $ps_feat)
-    <li><span class="pfc">✓</span>{{ $ps_feat }}</li>
-    @endforeach
-  </ul>
-  <a href="/accept-checkout?plan={{ $ps_key }}" class="btn {{ $ps_plan['btn'] }}">{{ $ps_plan['cta'] }}</a>
-</div>
-@php $ps_i++; @endphp
-@endforeach
-
-    </div>
-
     {{-- ───────── STEP 1 · CREDIT MONITORING — SmartCredit ───────── --}}
     <style>
       .sc-step{
-        max-width:1340px;margin:26px auto 0;
+        max-width:1340px;margin:0 auto 32px;
         background:linear-gradient(120deg,#15803d 0%,#22c55e 24%,#f97316 60%,#dc2626 100%);
         border:1.5px solid rgba(255,255,255,.25);
         border-radius:26px;padding:38px 44px;
@@ -1734,8 +1701,41 @@ color:#fff !important;
       </div>
       <div class="sc-step-r">
         <a href="https://www.smartcredit.com/?PID=48108" target="_blank" rel="noopener" class="sc-btn">📊 Sign Up for SmartCredit →</a>
-        <div class="sc-note">Opens in a new tab · Then choose your plan above</div>
+        <div class="sc-note">Opens in a new tab · Then choose your plan below</div>
       </div>
+    </div>
+
+    <div class="pg">
+
+{{-- Cards driven by config/plans.php — single source of truth --}}
+@php $ps_i = 0; @endphp
+@foreach (config('plans.plans') as $ps_key => $ps_plan)
+<div class="pc {{ $ps_plan['color'] }}{{ $ps_i > 0 ? ' d'.$ps_i : '' }}" id="ps-c{{ $ps_i }}">
+  <div class="glow" id="ps-g{{ $ps_i }}"></div>
+  <div class="orb orb1"></div><div class="orb orb2"></div>
+  @if (!empty($ps_plan['badge']))
+  <div class="badge-wrap"><div class="badge">{{ $ps_plan['badge'] }}</div></div>
+  @endif
+  <div class="pplan">{{ $ps_plan['label'] }}</div>
+  <div class="pcmp">@if (!empty($ps_plan['compare_at']))${{ rtrim(rtrim(number_format((float) $ps_plan['compare_at'], 2), '0'), '.') }}@endif</div>
+  <div class="pamt"><sup>$</sup>{{ $ps_plan['price_big'] }}</div>
+  <div class="pper">{{ $ps_plan['period'] }}</div>
+  @if (!empty($ps_plan['save']))
+  <div class="psave">SAVE ${{ $ps_plan['save'] }}</div>
+  @else
+  <div class="pcmn">{{ $ps_plan['sub_note'] ?? '' }}</div>
+  @endif
+  <div class="phr"></div>
+  <ul class="pfeats">
+    @foreach ($ps_plan['features'] as $ps_feat)
+    <li><span class="pfc">✓</span>{{ $ps_feat }}</li>
+    @endforeach
+  </ul>
+  <a href="/accept-checkout?plan={{ $ps_key }}" class="btn {{ $ps_plan['btn'] }}">{{ $ps_plan['cta'] }}</a>
+</div>
+@php $ps_i++; @endphp
+@endforeach
+
     </div>
 
   </div>
