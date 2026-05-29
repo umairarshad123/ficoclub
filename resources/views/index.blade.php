@@ -1720,7 +1720,7 @@ color:#fff !important;
   @if ($ps_key === 'monthly')
   <div class="pcmp">&nbsp;</div>
   <div class="pamt"><sup>$</sup>100<span style="font-size:18px;font-weight:700;letter-spacing:.5px;margin-left:6px;opacity:.9">/mo</span></div>
-  <div class="pper">Due today: one-time fee of $197</div>
+  <div class="pper">Plus $197 enrollment</div>
   <div class="psave">SAVE ${{ $ps_plan['save'] }}</div>
   @else
   <div class="pcmp">@if (!empty($ps_plan['compare_at']))${{ rtrim(rtrim(number_format((float) $ps_plan['compare_at'], 2), '0'), '.') }}@endif</div>
@@ -1743,6 +1743,12 @@ color:#fff !important;
 @php $ps_i++; @endphp
 @endforeach
 
+    </div>
+
+    {{-- ───────────────────────────── CROA / Coaching Disclaimer ─────────────────── --}}
+    <div class="pricing-disclaimer" style="margin:42px auto 0;max-width:980px;padding:20px 24px;border-radius:14px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);font-size:13px;line-height:1.7;color:rgba(255,255,255,0.72);text-align:center">
+      850 FICO Club provides credit coaching, education, and consulting services. The fees you pay are for these coaching and education services.
+      To the extent the Credit Repair Organizations Act (15 U.S.C. § 1679 <em>et seq.</em>) applies to any portion of our services, no fee is charged for that portion until it is fully performed.
     </div>
 
   </div>
@@ -4092,6 +4098,11 @@ color:#fff !important;
         <a href="/consumer-credit-file-rights">Consumer Credit File Rights</a>
         <a href="/notice-of-cancellation">Notice of Cancellation</a>
       </div>
+    </div>
+
+    <div class="footer-disclaimer" style="margin-top:18px;padding-top:18px;border-top:1px solid rgba(255,255,255,0.06);font-size:12px;line-height:1.7;color:rgba(255,255,255,0.55);max-width:1100px">
+      850 FICO Club provides credit coaching, education, and consulting services. The fees you pay are for these coaching and education services.
+      To the extent the Credit Repair Organizations Act (15 U.S.C. § 1679 <em>et seq.</em>) applies to any portion of our services, no fee is charged for that portion until it is fully performed.
     </div>
   </div>
 </footer>
