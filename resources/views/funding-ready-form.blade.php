@@ -776,8 +776,8 @@ footer{background:var(--navy);padding:72px 0 36px;}
     </div>
 
     <div class="footer-disclaimer" style="margin-top:18px;padding-top:18px;border-top:1px solid rgba(255,255,255,0.06);font-size:12px;line-height:1.7;color:rgba(255,255,255,0.55);max-width:1100px">
-      850 FICO Club provides credit coaching, education, and consulting services. The fees you pay are for these coaching and education services.
-      To the extent the Credit Repair Organizations Act (15 U.S.C. § 1679 <em>et seq.</em>) applies to any portion of our services, no fee is charged for that portion until it is fully performed.
+      850 FICO Club is a credit repair organization as defined under the Credit Repair Organizations Act (CROA), 15 U.S.C. § 1679 <em>et seq.</em>
+      In full compliance with CROA, no fees are collected until after the contracted services have been fully performed.
     </div>
   </div>
 </footer>

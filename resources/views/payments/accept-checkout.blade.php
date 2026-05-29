@@ -1437,8 +1437,8 @@ Fallback = config('plans.default') if nothing/invalid passed
                 </div>
 
                 <div class="footer-note" style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.06);font-size:11px;line-height:1.65;opacity:.78">
-                    850 FICO Club provides credit coaching, education, and consulting services. The fees you pay are for these coaching and education services.
-                    To the extent the Credit Repair Organizations Act (15 U.S.C. § 1679 <em>et seq.</em>) applies to any portion of our services, no fee is charged for that portion until it is fully performed.
+                    850 FICO Club is a credit repair organization as defined under the Credit Repair Organizations Act (CROA), 15 U.S.C. § 1679 <em>et seq.</em>
+                    In full compliance with CROA, no fees are collected until after the contracted services have been fully performed.
                 </div>
             </div>
         </div>
