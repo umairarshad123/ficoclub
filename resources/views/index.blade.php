@@ -1637,11 +1637,11 @@ color:#fff !important;
     {{-- ───────── STEP 1 · CREDIT MONITORING — SmartCredit ───────── --}}
     <style>
       .sc-step{
-        max-width:1340px;margin:0 auto 32px;
+        max-width:980px;margin:0 auto 32px;
         background:linear-gradient(120deg,#15803d 0%,#22c55e 24%,#f97316 60%,#dc2626 100%);
         border:1.5px solid rgba(255,255,255,.25);
-        border-radius:26px;padding:38px 44px;
-        display:flex;align-items:center;justify-content:space-between;gap:34px;
+        border-radius:22px;padding:32px 36px;
+        display:flex;align-items:center;justify-content:space-between;gap:28px;
         position:relative;overflow:hidden;
         box-shadow:0 18px 50px rgba(220,38,38,.28),0 8px 22px rgba(34,197,94,.22),inset 0 1px 0 rgba(255,255,255,.22);
       }
