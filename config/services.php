@@ -24,10 +24,12 @@ return [
 
 
     'google' => [
-        'ready_sheet_id' => env('GOOGLE_READY_SHEET_ID'),
-    'sheet_id'         => env('GOOGLE_SHEET_ID'),
-    'credentials_path' => env('GOOGLE_CREDENTIALS_PATH'),
-        ],
+        'ready_sheet_id'    => env('GOOGLE_READY_SHEET_ID'),
+        'sheet_id'          => env('GOOGLE_SHEET_ID'),
+        'clients_sheet_id'  => env('GOOGLE_CLIENTS_SHEET_ID', '1WXqGNrvWK7dvUxwowuswkv0mDT0e8aaqfzQCOnPzvuE'),
+        'credentials_path'  => env('GOOGLE_CREDENTIALS_PATH'),
+        'sheets_webhook_url'=> env('GOOGLE_SHEETS_WEBHOOK_URL'),
+    ],
 
     'ghl' => [
         'funding_webhook_url' => env('GHL_FUNDING_WEBHOOK_URL'),
@@ -67,5 +69,6 @@ return [
     'environment'       => env('AUTHORIZE_NET_ENVIRONMENT', 'sandbox'),
     'webhook_enforce_signature' => env('AUTHORIZE_NET_WEBHOOK_ENFORCE_SIGNATURE', false),
 ],
+
 
 ];

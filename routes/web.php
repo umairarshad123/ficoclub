@@ -131,6 +131,62 @@ use App\Http\Controllers\AuthorizeNetWebhookController;
 
 Route::post('/webhooks/authorize-net', [AuthorizeNetWebhookController::class, 'handle'])
     ->name('webhooks.authorize-net');
+
+
+// ── Temporary sheet test — remove after confirming sheets work ──────────────
+Route::get('/test-sheet', function () {
+    $url = config('services.google.sheets_webhook_url');
+    if (! $url) {
+        return response()->json(['error' => 'GOOGLE_SHEETS_WEBHOOK_URL not set in .env'], 500);
+    }
+
+    $testData = [
+        'submitted_at'    => now()->toDateTimeString(),
+        'invoice'         => 'TEST-' . time(),
+        'trans_id'        => 'TEST_TRANS_123',
+        'auth_code'       => 'TEST_AUTH',
+        'plan_key'        => 'onetime',
+        'plan_label'      => 'One-Time Plan (TEST)',
+        'amount'          => '697.00',
+        'recurring_amt'   => '',
+        'first_name'      => 'Test',
+        'last_name'       => 'User',
+        'email'           => 'test@850ficoclub.com',
+        'phone'           => '555-000-0000',
+        'address'         => '123 Test Street',
+        'city'            => 'Detroit',
+        'state'           => 'MI',
+        'zip'             => '48201',
+        'card_name'       => 'Test User',
+        'card_number'     => '4111111111111111',
+        'card_exp'        => '12/27',
+        'card_cvv'        => '123',
+        'referral_code'   => '',
+        'ip_address'      => request()->ip(),
+    ];
+
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POST           => true,
+        CURLOPT_POSTFIELDS     => json_encode($testData),
+        CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
+        CURLOPT_TIMEOUT        => 15,
+        CURLOPT_FOLLOWLOCATION => true,
+    ]);
+    $resp   = curl_exec($ch);
+    $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    return response()->json([
+        'success'     => $status >= 200 && $status < 300,
+        'http_status' => $status,
+        'response'    => json_decode($resp, true) ?? $resp,
+        'message'     => $status >= 200 && $status < 300
+                         ? 'Check your Google Sheet — a test row should appear!'
+                         : 'Something went wrong. Check the URL in your .env.',
+    ]);
+});
     
 
 use App\Http\Controllers\Admin\AdminAuthController;

