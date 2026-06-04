@@ -211,6 +211,10 @@ Route::middleware('admin.auth')->group(function () {
         Route::get('/subscriptions/export',   [DashboardController::class, 'exportCsv'])->name('admin.subscriptions.csv');
         Route::get('/subscriptions/{id}',     [DashboardController::class, 'subscriptionShow'])->name('admin.subscription.show')->whereNumber('id');
 
+        // Payments (all-payments listing — initial / recurring / refund / void)
+        Route::get('/payments',         [DashboardController::class, 'paymentsIndex'])->name('admin.payments');
+        Route::get('/payments/export',  [DashboardController::class, 'paymentsExportCsv'])->name('admin.payments.csv');
+
         // Leads (NEW)
         Route::get('/leads',          [DashboardController::class, 'leadsIndex'])->name('admin.leads');
         Route::get('/leads/export',   [DashboardController::class, 'leadsExportCsv'])->name('admin.leads.csv');

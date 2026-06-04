@@ -109,6 +109,121 @@ class DashboardController extends Controller
     }
 
     // ═════════════════════════════════════════════════════════════════════════
+    // PAYMENTS — All-payments listing (initial + recurring + refund + void)
+    // ═════════════════════════════════════════════════════════════════════════
+    public function paymentsIndex(Request $request)
+    {
+        $query = Payment::with('subscription:id,first_name,last_name,email,plan_label');
+
+        if ($search = trim((string) $request->input('q', ''))) {
+            $query->where(function ($w) use ($search) {
+                $w->where('transaction_id', 'like', "%{$search}%")
+                  ->orWhere('invoice_number', 'like', "%{$search}%")
+                  ->orWhereHas('subscription', function ($s) use ($search) {
+                      $s->where('first_name', 'like', "%{$search}%")
+                        ->orWhere('last_name', 'like', "%{$search}%")
+                        ->orWhere('email',     'like', "%{$search}%");
+                  });
+            });
+        }
+
+        if ($type   = $request->input('type'))   { $query->where('type', $type); }
+        if ($status = $request->input('status')) { $query->where('status', $status); }
+        if ($from   = $request->input('from'))   { $query->whereDate('charged_at', '>=', $from); }
+        if ($to     = $request->input('to'))     { $query->whereDate('charged_at', '<=', $to); }
+
+        $payments = $query->orderByDesc('charged_at')
+                          ->orderByDesc('id')
+                          ->paginate(25)
+                          ->withQueryString();
+
+        // Tab counters
+        $tabCounts = [
+            'total'     => Payment::count(),
+            'initial'   => Payment::where('type', 'initial')->count(),
+            'recurring' => Payment::where('type', 'recurring')->count(),
+            'refund'    => Payment::where('type', 'refund')->count(),
+            'void'      => Payment::where('type', 'void')->count(),
+        ];
+
+        // Summary money figures for the currently-filtered set
+        $sumClone = (clone $query);
+        $grossSql = (clone $sumClone)->whereIn('type', ['initial', 'recurring'])->sum('amount');
+        $negSql   = (clone $sumClone)->whereIn('type', ['refund', 'void'])->sum('amount');
+        $totals = [
+            'count' => $payments->total(),
+            'gross' => (float) $grossSql,
+            'neg'   => (float) $negSql,
+            'net'   => (float) $grossSql - (float) $negSql,
+        ];
+
+        return view('admin.payments-index', [
+            'payments'  => $payments,
+            'filters'   => $request->only(['q', 'type', 'status', 'from', 'to']),
+            'tabCounts' => $tabCounts,
+            'totals'    => $totals,
+        ]);
+    }
+
+    /**
+     * Stream the currently-filtered payments list as a CSV.
+     */
+    public function paymentsExportCsv(Request $request): StreamedResponse
+    {
+        $query = Payment::with('subscription:id,first_name,last_name,email,plan_label');
+
+        if ($search = trim((string) $request->input('q', ''))) {
+            $query->where(function ($w) use ($search) {
+                $w->where('transaction_id', 'like', "%{$search}%")
+                  ->orWhere('invoice_number', 'like', "%{$search}%")
+                  ->orWhereHas('subscription', function ($s) use ($search) {
+                      $s->where('first_name', 'like', "%{$search}%")
+                        ->orWhere('last_name', 'like', "%{$search}%")
+                        ->orWhere('email',     'like', "%{$search}%");
+                  });
+            });
+        }
+        if ($type   = $request->input('type'))   { $query->where('type', $type); }
+        if ($status = $request->input('status')) { $query->where('status', $status); }
+        if ($from   = $request->input('from'))   { $query->whereDate('charged_at', '>=', $from); }
+        if ($to     = $request->input('to'))     { $query->whereDate('charged_at', '<=', $to); }
+
+        $filename = 'payments-' . now()->format('Ymd-His') . '.csv';
+
+        return response()->streamDownload(function () use ($query) {
+            $out = fopen('php://output', 'w');
+            fputcsv($out, [
+                'Charged At', 'Type', 'Status', 'Amount',
+                'Customer', 'Email', 'Plan',
+                'Transaction ID', 'Invoice #', 'Subscription ID',
+                'Event Type', 'Created At',
+            ]);
+            $query->orderByDesc('charged_at')->chunk(500, function ($rows) use ($out) {
+                foreach ($rows as $p) {
+                    $sub = $p->subscription;
+                    fputcsv($out, [
+                        optional($p->charged_at)->format('Y-m-d H:i:s'),
+                        $p->type,
+                        $p->status,
+                        number_format($p->signedAmount(), 2, '.', ''),
+                        $sub ? $sub->first_name . ' ' . $sub->last_name : '',
+                        $sub->email ?? '',
+                        $sub->plan_label ?? '',
+                        $p->transaction_id,
+                        $p->invoice_number,
+                        $p->subscription_id,
+                        $p->event_type_raw,
+                        optional($p->created_at)->format('Y-m-d H:i:s'),
+                    ]);
+                }
+            });
+            fclose($out);
+        }, $filename, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+        ]);
+    }
+
+    // ═════════════════════════════════════════════════════════════════════════
     // LEADS
     // ═════════════════════════════════════════════════════════════════════════
     public function leadsIndex(Request $request)

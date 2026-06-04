@@ -71,6 +71,12 @@
         Subscriptions
       </a>
 
+      <a href="{{ route('admin.payments') }}"
+         class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition {{ $isActive('admin.payments') }}">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M5 6h14a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2zm10 8h4"/></svg>
+        Payments
+      </a>
+
       <a href="{{ route('admin.referrals') }}"
          class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition {{ $isActive('admin.referrals') }}">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>

@@ -1,4 +1,24 @@
+---
+# cPanel "Git Version Control" deployment hook.
+# Triggered when the user clicks "Update from Remote" in cPanel,
+# or via the "Deploy HEAD Commit" button.
+#
+# Tasks run from the repository's working tree on the cPanel server,
+# in order. Each task is a single shell command.
 deployment:
   tasks:
+    # ── 1. Copy the repo into the live web root ──────────────────────────────
     - export DEPLOYPATH=/home/ficoclub/public_html
     - /bin/cp -R * $DEPLOYPATH
+
+    # ── 2. Apply any pending database migrations ─────────────────────────────
+    # --force is required because cPanel runs this in non-interactive mode.
+    # If `php` isn't on PATH for the deploy user, swap in the full path,
+    # e.g. /usr/local/bin/php or /opt/cpanel/ea-php82/root/usr/bin/php.
+    - cd $DEPLOYPATH && php artisan migrate --force --no-interaction || true
+
+    # ── 3. Clear Laravel caches so view + config changes take effect ─────────
+    - cd $DEPLOYPATH && php artisan config:clear || true
+    - cd $DEPLOYPATH && php artisan view:clear   || true
+    - cd $DEPLOYPATH && php artisan route:clear  || true
+    - cd $DEPLOYPATH && php artisan cache:clear  || true

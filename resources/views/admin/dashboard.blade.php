@@ -193,8 +193,9 @@
   </div>
 
   <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-    <div class="px-5 py-3 border-b border-gray-200">
+    <div class="px-5 py-3 border-b border-gray-200 flex items-center justify-between">
       <h2 class="font-semibold text-ink">Recent Payments</h2>
+      <a href="{{ route('admin.payments') }}" class="text-xs text-gold hover:underline">All payments →</a>
     </div>
     <table class="w-full text-sm">
       <thead class="text-xs uppercase text-gray-500 bg-gray-50 border-b border-gray-200">
