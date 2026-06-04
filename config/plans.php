@@ -136,38 +136,5 @@ return [
             ],
         ],
 
-        // ───────────────────────────── TEST · $5 ────────────────────────
-        // Internal verification charge. Visible card on the pricing grid so
-        // staff can run a live end-to-end Authorize.Net + webhook test.
-        // NOT for customer use — UI labels clearly say so.
-        'test' => [
-            'key'             => 'test',
-            'label'           => 'Test Plan',
-            'tag'             => 'INTERNAL TEST',
-            'tagline'         => 'DO NOT PURCHASE',
-            'desc'            => 'Internal $5 verification charge. Used by staff to confirm Authorize.Net, webhooks, and onboarding work end-to-end.',
-            'amount'          => '5.00',
-            'recurring'       => null,
-            'compare_at'      => null,
-            'save'            => null,
-            'price_big'       => '5',
-            'period'          => 'verification charge · DO NOT PURCHASE',
-            'billing_note'    => 'internal $5 verification charge',
-            'monitoring_note' => null,
-            'sub_note'        => 'Staff use only',
-            'color'           => 'test-card',
-            'btn'             => 'btn-light',
-            'tag_class'       => 'test-tag',
-            'badge'           => 'TEST',
-            'is_couples'      => false,
-            'cta'             => 'Run Test Charge',
-            'features'        => [
-                'Charges exactly $5.00 via Authorize.Net',
-                'Confirms end-to-end payment flow + webhooks',
-                'Verifies GHL + Meta CAPI fire correctly',
-                'Internal staff verification — DO NOT PURCHASE',
-            ],
-        ],
-
     ],
 ];

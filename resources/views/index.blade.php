@@ -1381,7 +1381,7 @@ color:#fff !important;
   .pricing-section .acc{color:#22c55e}
   .pricing-section .lead{font-size:15px;color:#64748b;font-weight:500}
 
-  .pricing-section .pg{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;max-width:1380px;margin:0 auto}
+  .pricing-section .pg{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;max-width:1080px;margin:0 auto}
   @media(max-width:1180px){.pricing-section .pg{grid-template-columns:repeat(2,1fr);max-width:760px}}
   @media(max-width:620px){.pricing-section .pg{grid-template-columns:1fr;max-width:420px}}
 
@@ -1437,17 +1437,6 @@ color:#fff !important;
   }
   .pricing-section .platinum-card:hover{
     box-shadow:0 40px 90px rgba(220,38,38,.50),0 12px 32px rgba(220,38,38,.32),0 0 0 1px rgba(255,255,255,.28),inset 0 1px 0 rgba(255,255,255,.30)!important;
-    filter:brightness(1.06);
-  }
-
-  /* ── TEST · SLATE (internal verification card — staff only) ── */
-  .pricing-section .test-card{
-    background:linear-gradient(160deg,#64748b 0%,#475569 45%,#334155 100%);
-    box-shadow:0 16px 48px rgba(71,85,105,.35),0 4px 12px rgba(71,85,105,.20),inset 0 1px 0 rgba(255,255,255,.18);
-    border:1.5px dashed rgba(254,215,170,.55);
-  }
-  .pricing-section .test-card:hover{
-    box-shadow:0 40px 90px rgba(71,85,105,.48),0 12px 32px rgba(71,85,105,.30),0 0 0 1px rgba(254,215,170,.6),inset 0 1px 0 rgba(255,255,255,.26)!important;
     filter:brightness(1.06);
   }
 
