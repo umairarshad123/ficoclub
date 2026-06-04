@@ -1539,6 +1539,19 @@ color:#fff !important;
   }
   .pricing-section .pc:hover .pfc{transform:scale(1.2);background:rgba(255,255,255,.35)}
 
+  /* ── BEST FOR · positioning blurb above the CTA ── */
+  .pricing-section .pbf{
+    font-size:12px;line-height:1.55;
+    color:rgba(255,255,255,.82);
+    margin:8px 0 22px;padding:14px 0 0;
+    border-top:1px dashed rgba(255,255,255,.20);
+    font-weight:500;
+  }
+  .pricing-section .pbf b{
+    color:#fff;font-weight:800;letter-spacing:.4px;
+    margin-right:4px;
+  }
+
   /* ── BUTTONS ── */
   .pricing-section .btn{
     display:inline-flex;align-items:center;justify-content:center;
@@ -1693,6 +1706,9 @@ color:#fff !important;
     <li><span class="pfc">✓</span>{{ $ps_feat }}</li>
     @endforeach
   </ul>
+  @if (!empty($ps_plan['best_for']))
+  <div class="pbf"><b>Best for:</b>{{ $ps_plan['best_for'] }}</div>
+  @endif
   <a href="/accept-checkout?plan={{ $ps_key }}" class="btn {{ $ps_plan['btn'] }}">{{ $ps_plan['cta'] }}</a>
 </div>
 @php $ps_i++; @endphp

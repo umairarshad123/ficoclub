@@ -21,7 +21,8 @@
 |   compare_at       = strike-through "was" price, or null
 |   save             = dollars saved badge, or null
 |   monitoring_note  = small italic line under the price (SmartCredit reminder)
-|   color/btn        = index.blade.php CSS classes (gold-card / silver-card / platinum-card · btn-light / btn-gold)
+|   best_for         = short positioning blurb shown above the CTA
+|   color/btn        = index.blade.php CSS classes (silver-card / gold-card / platinum-card · btn-light / btn-gold)
 |   badge            = corner ribbon text on the pricing card, or null
 |   is_couples       = legacy flag, false on all current plans
 |
@@ -57,7 +58,7 @@ return [
             'tag_class'       => 'silver-tag',
             'badge'           => null,
             'is_couples'      => false,
-            'cta'             => 'Start My Program',
+            'cta'             => 'Apply For Silver',
             'features'        => [
                 'Personal information update',
                 'Late payments challenged',
@@ -65,9 +66,14 @@ return [
                 'Charge-offs challenged',
                 'Hard inquiries challenged',
                 'Fast-tracked results in 30–90 days',
+                '3-bureau dispute letters prepared on your behalf',
+                'FCRA & FDCPA-based dispute strategy',
+                'Credit-building guidance after disputes',
+                'Email & SMS status updates',
                 'Monthly progress reports + live score tracking',
                 '24/7 client portal access',
             ],
+            'best_for'        => 'Clients with collections, charge-offs, late payments, or inquiries looking for a clean, fast start.',
         ],
 
         // ───────────────────────────── GOLD ─────────────────────────────
@@ -77,11 +83,11 @@ return [
             'tag'             => 'GOLD PLAN',
             'tagline'         => 'Public Records Program',
             'desc'            => 'Focused on the heavy public-records hits: bankruptcies, repossessions, student loans, medical bills and child support.',
-            'amount'          => '997.00',
+            'amount'          => '897.00',
             'recurring'       => null,
-            'compare_at'      => '1197.00',
+            'compare_at'      => '1097.00',
             'save'            => '200',
-            'price_big'       => '997',
+            'price_big'       => '897',
             'period'          => 'one-time program fee',
             'billing_note'    => 'one-time program fee · + $34.95/mo SmartCredit monitoring',
             'monitoring_note' => '+ $34.95/mo Smart Credit monitoring',
@@ -91,16 +97,23 @@ return [
             'tag_class'       => 'gold-tag',
             'badge'           => null,
             'is_couples'      => false,
-            'cta'             => 'Start My Program',
+            'cta'             => 'Apply For Gold',
             'features'        => [
                 'Bankruptcy records challenged',
                 'Repossessions challenged',
                 'Student loans challenged',
                 'Medical bills challenged',
                 'Child support challenged',
+                'Everything in Silver, plus public records coverage',
+                'FCRA Metro 2 compliance-based dispute strategy',
+                'Debt validation letters to collection agencies',
+                'Goodwill letter assistance for paid late payments',
+                'Credit utilization guidance & score optimization',
+                'Tradeline strategy consultation',
                 'Monthly progress reports + live score tracking',
                 '24/7 client portal access',
             ],
+            'best_for'        => 'Clients with bankruptcies, repos, student loans, or medical debt who need deeper public records work.',
         ],
 
         // ───────────────────────────── PLATINUM ─────────────────────────
@@ -110,11 +123,11 @@ return [
             'tag'             => 'PLATINUM PLAN',
             'tagline'         => 'White-Glove · Done-For-You',
             'desc'            => 'Everything. Done for you. A dedicated specialist, front-of-line priority disputes, and lender introductions.',
-            'amount'          => '1997.00',
+            'amount'          => '1497.00',
             'recurring'       => null,
-            'compare_at'      => '2497.00',
+            'compare_at'      => '1997.00',
             'save'            => '500',
-            'price_big'       => '1,997',
+            'price_big'       => '1,497',
             'period'          => 'white-glove program',
             'billing_note'    => 'white-glove program · + $34.95/mo SmartCredit monitoring',
             'monitoring_note' => '+ $34.95/mo Smart Credit monitoring',
@@ -130,10 +143,14 @@ return [
                 'Done-for-you service — we handle everything, you do nothing',
                 'Dedicated credit specialist assigned exclusively to your case',
                 'Front-of-line priority disputes — fastest turnaround of any plan',
-                '1-on-1 strategy calls to track progress & plan next steps',
+                'Identity theft resolution support',
+                'Rapid rescore coordination with lenders',
+                'Access to preferred funding partners & credit lines',
+                'Direct advisor access during business hours',
                 '24/7 VIP client portal + real-time score tracking',
                 'Exclusive lender & funding introductions — not available on other plans',
             ],
+            'best_for'        => 'Clients preparing for a mortgage, major funding, or who want a dedicated specialist handling everything start to finish.',
         ],
 
     ],
