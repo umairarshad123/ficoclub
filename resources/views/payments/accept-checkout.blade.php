@@ -1134,7 +1134,7 @@
 {{--
 PLAN DATA — passed via URL query param from index.blade.php
 Expected param:
-plan   = gold | silver | platinum   (see config/plans.php)
+plan   = silver | gold | platinum | test   (see config/plans.php)
 Fallback = config('plans.default') if nothing/invalid passed
 --}}
 
