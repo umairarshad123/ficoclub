@@ -1381,7 +1381,7 @@ color:#fff !important;
   .pricing-section .acc{color:#22c55e}
   .pricing-section .lead{font-size:15px;color:#64748b;font-weight:500}
 
-  .pricing-section .pg{display:grid;grid-template-columns:repeat(4,1fr);gap:22px;max-width:1340px;margin:0 auto}
+  .pricing-section .pg{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;max-width:1080px;margin:0 auto}
   @media(max-width:1180px){.pricing-section .pg{grid-template-columns:repeat(2,1fr);max-width:760px}}
   @media(max-width:620px){.pricing-section .pg{grid-template-columns:1fr;max-width:420px}}
 
