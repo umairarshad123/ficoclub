@@ -52,7 +52,14 @@ class DashboardController extends Controller
     // ═════════════════════════════════════════════════════════════════════════
     public function subscriptionsIndex(Request $request)
     {
-        $query = Subscription::query();
+        // This page shows ACTUAL recurring subscriptions only.
+        // One-time enrollments (Silver / Gold / Platinum / legacy onetime / test)
+        // live on /admin/payments. Filter: real ARB subs have either a
+        // recurring_amount or an arb_subscription_id set.
+        $query = Subscription::query()->where(function ($q) {
+            $q->whereNotNull('recurring_amount')
+              ->orWhereNotNull('arb_subscription_id');
+        });
 
         if ($search = trim((string) $request->input('q', ''))) {
             $query->where(function ($w) use ($search) {
@@ -80,11 +87,16 @@ class DashboardController extends Controller
 
         $subs = $query->orderByDesc('created_at')->paginate(25)->withQueryString();
 
+        // Tab counts use the same recurring-only scope as the list itself.
+        $recurringScope = fn () => Subscription::query()->where(function ($q) {
+            $q->whereNotNull('recurring_amount')
+              ->orWhereNotNull('arb_subscription_id');
+        });
         $tabCounts = [
-            'total'     => Subscription::count(),
-            'active'    => Subscription::where('status', 'active')->count(),
-            'suspended' => Subscription::where('status', 'past_due')->count(),
-            'cancelled' => Subscription::whereIn('status', self::CANCELLED_STATUSES)->count(),
+            'total'     => $recurringScope()->count(),
+            'active'    => $recurringScope()->where('status', 'active')->count(),
+            'suspended' => $recurringScope()->where('status', 'past_due')->count(),
+            'cancelled' => $recurringScope()->whereIn('status', self::CANCELLED_STATUSES)->count(),
         ];
 
         return view('admin.subscriptions-index', [
@@ -493,7 +505,11 @@ class DashboardController extends Controller
             'Content-Disposition' => "attachment; filename=\"{$filename}\"",
         ];
 
-        $query = Subscription::query();
+        // CSV export mirrors the on-screen list: recurring subs only.
+        $query = Subscription::query()->where(function ($q) {
+            $q->whereNotNull('recurring_amount')
+              ->orWhereNotNull('arb_subscription_id');
+        });
         if ($search = trim((string) $request->input('q', ''))) {
             $query->where(function ($w) use ($search) {
                 $w->where('first_name', 'like', "%{$search}%")
