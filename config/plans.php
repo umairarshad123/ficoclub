@@ -101,7 +101,7 @@ return [
             'label'        => 'VIP Plan',
             'tag'          => 'VIP PLAN',
             'tagline'      => 'White-Glove · Done-With-You',
-            'desc'         => 'Done-with-you. Priority everything, a direct text line to Anthony, and weekly progress calls.',
+            'desc'         => 'Done-with-you. Priority everything, a direct text line to your specialist, and weekly progress calls.',
             'amount'       => '1997.00',
             'recurring'    => null,
             'compare_at'   => null,
@@ -118,7 +118,7 @@ return [
             'cta'          => 'Apply For VIP',
             'features'     => [
                 'Done-with-you white-glove priority service',
-                'Direct text line to Anthony — answers in minutes',
+                'Direct text line to your specialist — answers in minutes',
                 'Public records: bankruptcies, repossessions, student loans, medical bills & child support addressed',
                 'Weekly 1-on-1 progress strategy calls',
                 '24/7 client portal access',

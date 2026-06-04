@@ -1697,7 +1697,7 @@ color:#fff !important;
       <div class="sc-step-l">
         <span class="sc-eyebrow">Step 1 · Credit Monitoring</span>
         <h3>Sign Up for <span>SmartCredit</span> First</h3>
-        <p>Before we begin, set up your SmartCredit account so Anthony can pull your full 3-bureau credit report, see exactly what's hurting your score, and build your custom dispute plan. This is required to get started — it only takes 2 minutes.</p>
+        <p>Before we begin, set up your SmartCredit account so our team can pull your full 3-bureau credit report, see exactly what's hurting your score, and build your custom dispute plan. This is required to get started — it only takes 2 minutes.</p>
       </div>
       <div class="sc-step-r">
         <a href="https://www.smartcredit.com/?PID=48108" target="_blank" rel="noopener" class="sc-btn">📊 Sign Up for SmartCredit →</a>
