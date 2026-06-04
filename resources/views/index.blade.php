@@ -1407,7 +1407,18 @@ color:#fff !important;
   /* hover lift */
   .pricing-section .pc:hover{transform:translateY(-14px) scale(1.025) rotateX(2deg)!important}
 
-  /* ── GOLD ── */
+  /* ── SILVER · GREEN (matches "850" in logo) ── */
+  .pricing-section .silver-card{
+    background:linear-gradient(160deg,#22c55e 0%,#16a34a 45%,#15803d 100%);
+    box-shadow:0 16px 48px rgba(22,163,74,.38),0 4px 12px rgba(22,163,74,.22),inset 0 1px 0 rgba(255,255,255,.22);
+    border:1.5px solid rgba(255,255,255,.18);
+  }
+  .pricing-section .silver-card:hover{
+    box-shadow:0 40px 90px rgba(22,163,74,.50),0 12px 32px rgba(22,163,74,.32),0 0 0 1px rgba(255,255,255,.28),inset 0 1px 0 rgba(255,255,255,.30)!important;
+    filter:brightness(1.06);
+  }
+
+  /* ── GOLD · ORANGE (matches "FICO" in logo) ── */
   .pricing-section .gold-card{
     background:linear-gradient(160deg,#fb923c 0%,#ea580c 45%,#9a3412 100%);
     box-shadow:0 16px 48px rgba(234,88,12,.38),0 4px 12px rgba(234,88,12,.22),inset 0 1px 0 rgba(255,255,255,.22);
@@ -1418,25 +1429,14 @@ color:#fff !important;
     filter:brightness(1.06);
   }
 
-  /* ── SILVER ── */
-  .pricing-section .silver-card{
-    background:linear-gradient(160deg,#fb7185 0%,#e11d48 45%,#9f1239 100%);
-    box-shadow:0 16px 48px rgba(225,29,72,.38),0 4px 12px rgba(225,29,72,.22),inset 0 1px 0 rgba(255,255,255,.22);
-    border:1.5px solid rgba(255,255,255,.18);
-  }
-  .pricing-section .silver-card:hover{
-    box-shadow:0 40px 90px rgba(225,29,72,.50),0 12px 32px rgba(225,29,72,.32),0 0 0 1px rgba(255,255,255,.28),inset 0 1px 0 rgba(255,255,255,.30)!important;
-    filter:brightness(1.06);
-  }
-
-  /* ── PLATINUM ── */
+  /* ── PLATINUM · RED (matches "CLUB" in logo) ── */
   .pricing-section .platinum-card{
-    background:linear-gradient(160deg,#c084fc 0%,#9333ea 45%,#6b21a8 100%);
-    box-shadow:0 16px 48px rgba(147,51,234,.38),0 4px 12px rgba(147,51,234,.22),inset 0 1px 0 rgba(255,255,255,.22);
+    background:linear-gradient(160deg,#f87171 0%,#dc2626 45%,#b91c1c 100%);
+    box-shadow:0 16px 48px rgba(220,38,38,.38),0 4px 12px rgba(220,38,38,.22),inset 0 1px 0 rgba(255,255,255,.22);
     border:1.5px solid rgba(255,255,255,.18);
   }
   .pricing-section .platinum-card:hover{
-    box-shadow:0 40px 90px rgba(147,51,234,.50),0 12px 32px rgba(147,51,234,.32),0 0 0 1px rgba(255,255,255,.28),inset 0 1px 0 rgba(255,255,255,.30)!important;
+    box-shadow:0 40px 90px rgba(220,38,38,.50),0 12px 32px rgba(220,38,38,.32),0 0 0 1px rgba(255,255,255,.28),inset 0 1px 0 rgba(255,255,255,.30)!important;
     filter:brightness(1.06);
   }
 
