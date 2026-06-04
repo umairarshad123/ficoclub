@@ -113,7 +113,7 @@ class AcceptJsPaymentController extends Controller
 
                 // Plan catalog is the single source of truth (config/plans.php)
                 $planCatalog  = config('plans.plans');
-                $defaultPlan  = config('plans.default', 'onetime');
+                $defaultPlan  = config('plans.default', 'silver');
 
                 $planKey      = isset($planCatalog[$validated['selected_plan'] ?? '']) ? $validated['selected_plan'] : $defaultPlan;
                 $amount       = $planCatalog[$planKey]['amount'];

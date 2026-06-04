@@ -1134,7 +1134,7 @@
 {{--
 PLAN DATA — passed via URL query param from index.blade.php
 Expected param:
-plan   = monthly | onetime | vip   (see config/plans.php)
+plan   = gold | silver | platinum   (see config/plans.php)
 Fallback = config('plans.default') if nothing/invalid passed
 --}}
 
@@ -1466,7 +1466,7 @@ Fallback = config('plans.default') if nothing/invalid passed
             'features'    => array_values($p['features']),
         ];
     }
-    $defaultPlan = config('plans.default', 'onetime');
+    $defaultPlan = config('plans.default', 'silver');
 @endphp
 var PLANS = {!! json_encode($jsPlans, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!};
 var DEFAULT_PLAN = {!! json_encode($defaultPlan) !!};

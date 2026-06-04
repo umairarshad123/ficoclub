@@ -1371,7 +1371,7 @@ color:#fff !important;
 
   .pricing-section *{box-sizing:border-box;margin:0;padding:0}
 
-  .pricing-section .pr{font-family:'Sora',sans-serif;padding:80px 24px;background:#eef2f7;min-height:100vh;perspective:1200px}
+  .pricing-section .pr{font-family:'Sora',sans-serif;padding:80px 24px;background:#ffffff;min-height:100vh;perspective:1200px}
 
   .pricing-section .ph{text-align:center;margin-bottom:64px;opacity:0;transform:translateY(32px);animation:ps-fadeUp .8s cubic-bezier(.16,1,.3,1) .1s forwards}
   .pricing-section .stag{display:inline-flex;align-items:center;gap:7px;background:rgba(34,197,94,.15);color:#15803d;font-size:10px;font-weight:900;letter-spacing:2.5px;text-transform:uppercase;padding:7px 18px;border-radius:100px;margin-bottom:20px}
@@ -1407,47 +1407,36 @@ color:#fff !important;
   /* hover lift */
   .pricing-section .pc:hover{transform:translateY(-14px) scale(1.025) rotateX(2deg)!important}
 
-  /* ── GREEN ── */
-  .pricing-section .cg{
-    background:linear-gradient(145deg,#22c55e 0%,#16a34a 45%,#15803d 100%);
-    box-shadow:0 16px 48px rgba(22,163,74,.4),0 4px 12px rgba(22,163,74,.25),inset 0 1px 0 rgba(255,255,255,.25);
-    border:1.5px solid rgba(255,255,255,.2);
+  /* ── GOLD ── */
+  .pricing-section .gold-card{
+    background:linear-gradient(160deg,#fb923c 0%,#ea580c 45%,#9a3412 100%);
+    box-shadow:0 16px 48px rgba(234,88,12,.38),0 4px 12px rgba(234,88,12,.22),inset 0 1px 0 rgba(255,255,255,.22);
+    border:1.5px solid rgba(255,255,255,.18);
   }
-  .pricing-section .cg:hover{
-    box-shadow:0 40px 90px rgba(22,163,74,.55),0 12px 32px rgba(22,163,74,.35),0 0 0 1px rgba(255,255,255,.3),inset 0 1px 0 rgba(255,255,255,.3)!important;
+  .pricing-section .gold-card:hover{
+    box-shadow:0 40px 90px rgba(234,88,12,.50),0 12px 32px rgba(234,88,12,.32),0 0 0 1px rgba(255,255,255,.28),inset 0 1px 0 rgba(255,255,255,.30)!important;
     filter:brightness(1.06);
   }
 
-  /* ── ORANGE ── */
-  .pricing-section .co{
-    background:linear-gradient(145deg,#f97316 0%,#ea580c 45%,#c2410c 100%);
-    box-shadow:0 16px 48px rgba(234,88,12,.4),0 4px 12px rgba(234,88,12,.25),inset 0 1px 0 rgba(255,255,255,.25);
-    border:1.5px solid rgba(255,255,255,.2);
+  /* ── SILVER ── */
+  .pricing-section .silver-card{
+    background:linear-gradient(160deg,#fb7185 0%,#e11d48 45%,#9f1239 100%);
+    box-shadow:0 16px 48px rgba(225,29,72,.38),0 4px 12px rgba(225,29,72,.22),inset 0 1px 0 rgba(255,255,255,.22);
+    border:1.5px solid rgba(255,255,255,.18);
   }
-  .pricing-section .co:hover{
-    box-shadow:0 40px 90px rgba(234,88,12,.55),0 12px 32px rgba(234,88,12,.35),0 0 0 1px rgba(255,255,255,.3),inset 0 1px 0 rgba(255,255,255,.3)!important;
+  .pricing-section .silver-card:hover{
+    box-shadow:0 40px 90px rgba(225,29,72,.50),0 12px 32px rgba(225,29,72,.32),0 0 0 1px rgba(255,255,255,.28),inset 0 1px 0 rgba(255,255,255,.30)!important;
     filter:brightness(1.06);
   }
 
-  /* ── RED ── */
-  .pricing-section .cr{
-    background:linear-gradient(145deg,#f87171 0%,#dc2626 45%,#b91c1c 100%);
-    box-shadow:0 16px 48px rgba(220,38,38,.4),0 4px 12px rgba(220,38,38,.25),inset 0 1px 0 rgba(255,255,255,.25);
-    border:1.5px solid rgba(255,255,255,.2);
+  /* ── PLATINUM ── */
+  .pricing-section .platinum-card{
+    background:linear-gradient(160deg,#c084fc 0%,#9333ea 45%,#6b21a8 100%);
+    box-shadow:0 16px 48px rgba(147,51,234,.38),0 4px 12px rgba(147,51,234,.22),inset 0 1px 0 rgba(255,255,255,.22);
+    border:1.5px solid rgba(255,255,255,.18);
   }
-  .pricing-section .cr:hover{
-    box-shadow:0 40px 90px rgba(220,38,38,.55),0 12px 32px rgba(220,38,38,.35),0 0 0 1px rgba(255,255,255,.3),inset 0 1px 0 rgba(255,255,255,.3)!important;
-    filter:brightness(1.06);
-  }
-
-  /* ── BLUE (NEW — VIP) ── */
-  .pricing-section .cb{
-    background:linear-gradient(145deg,#3b82f6 0%,#2563eb 45%,#1d4ed8 100%);
-    box-shadow:0 16px 48px rgba(37,99,235,.4),0 4px 12px rgba(37,99,235,.25),inset 0 1px 0 rgba(255,255,255,.25);
-    border:1.5px solid rgba(255,255,255,.2);
-  }
-  .pricing-section .cb:hover{
-    box-shadow:0 40px 90px rgba(37,99,235,.55),0 12px 32px rgba(37,99,235,.35),0 0 0 1px rgba(255,255,255,.3),inset 0 1px 0 rgba(255,255,255,.3)!important;
+  .pricing-section .platinum-card:hover{
+    box-shadow:0 40px 90px rgba(147,51,234,.50),0 12px 32px rgba(147,51,234,.32),0 0 0 1px rgba(255,255,255,.28),inset 0 1px 0 rgba(255,255,255,.30)!important;
     filter:brightness(1.06);
   }
 
@@ -1473,38 +1462,27 @@ color:#fff !important;
   .pricing-section .pc:hover .orb1{transform:scale(1.5);opacity:.7}
   .pricing-section .pc:hover .orb2{transform:scale(1.8);opacity:.6}
 
-  /* ── CORNER RIBBON ──
-     A dedicated corner box with its OWN overflow:hidden + matching
-     border-radius. The card uses transform-style:preserve-3d which
-     disables overflow clipping of its descendants, so the ribbon must
-     be clipped by this wrapper (no 3D context) instead. */
+  /* ── CORNER VIP TAB ── */
   .pricing-section .badge-wrap{
     position:absolute;
     top:0;
     right:0;
-    width:120px;
-    height:120px;
-    overflow:hidden;
-    border-top-right-radius:26px;   /* matches .pc border-radius */
     pointer-events:none;
     z-index:6;
   }
   .pricing-section .badge{
-    position:absolute;
-    top:20px;
-    right:-42px;
-    width:152px;
-    text-align:center;
-    transform:rotate(45deg);
-    background:linear-gradient(135deg,#fbbf24 0%,#f59e0b 100%);
-    color:#fff;
-    font-size:10.5px;
-    font-weight:800;
-    letter-spacing:1.2px;
+    display:block;
+    background:linear-gradient(135deg,#fde047 0%,#facc15 60%,#eab308 100%);
+    color:#3b1d00;
+    font-size:11px;
+    font-weight:900;
+    letter-spacing:1.4px;
     text-transform:uppercase;
-    padding:6px 0;
-    box-shadow:0 4px 14px rgba(245,158,11,.45),
-               inset 0 1px 0 rgba(255,255,255,.28);
+    padding:9px 20px 9px 18px;
+    border-top-right-radius:26px;
+    border-bottom-left-radius:18px;
+    box-shadow:0 6px 18px rgba(234,179,8,.45),
+               inset 0 1px 0 rgba(255,255,255,.5);
   }
 
   /* ── PLAN LABEL ── */
@@ -1587,21 +1565,17 @@ color:#fff !important;
   }
   .pricing-section .btn:hover::before{transform:translateX(100%)}
 
-  .pricing-section .btn-g{background:#fff;color:#166534;box-shadow:0 4px 20px rgba(0,0,0,.15)}
-  .pricing-section .btn-g:hover{transform:translateY(-3px) scale(1.02);box-shadow:0 10px 30px rgba(0,0,0,.22);background:#f0fdf4}
+  /* white CTA for Gold + Silver */
+  .pricing-section .btn-light{background:#fff;color:#1f2937;box-shadow:0 4px 20px rgba(0,0,0,.15)}
+  .pricing-section .btn-light:hover{transform:translateY(-3px) scale(1.02);box-shadow:0 10px 30px rgba(0,0,0,.25);background:#f8fafc}
 
-  .pricing-section .btn-o{background:#fff;color:#9a3412;box-shadow:0 4px 20px rgba(0,0,0,.15)}
-  .pricing-section .btn-o:hover{transform:translateY(-3px) scale(1.02);box-shadow:0 10px 30px rgba(0,0,0,.22);background:#fff7ed}
-
-  .pricing-section .btn-r{background:#fff;color:#991b1b;box-shadow:0 4px 20px rgba(0,0,0,.15)}
-  .pricing-section .btn-r:hover{transform:translateY(-3px) scale(1.02);box-shadow:0 10px 30px rgba(0,0,0,.22);background:#fff1f1}
-
-  .pricing-section .btn-b{background:#fff;color:#1d4ed8;box-shadow:0 4px 20px rgba(0,0,0,.15)}
-  .pricing-section .btn-b:hover{transform:translateY(-3px) scale(1.02);box-shadow:0 10px 30px rgba(0,0,0,.22);background:#eff6ff}
+  /* yellow CTA for Platinum */
+  .pricing-section .btn-gold{background:linear-gradient(180deg,#fde047 0%,#facc15 100%);color:#3b1d00;box-shadow:0 4px 20px rgba(234,179,8,.45),inset 0 1px 0 rgba(255,255,255,.55)}
+  .pricing-section .btn-gold:hover{transform:translateY(-3px) scale(1.02);box-shadow:0 10px 30px rgba(234,179,8,.55),inset 0 1px 0 rgba(255,255,255,.6);filter:brightness(1.05)}
 
   /* ── COMPARE / SAVE ── */
-  .pricing-section .pcmp{font-size:14px;color:rgba(255,255,255,.6);font-weight:700;text-decoration:line-through;margin-bottom:2px;height:18px}
-  .pricing-section .psave{display:inline-block;background:rgba(255,255,255,.2);color:#fff;font-size:11px;font-weight:800;letter-spacing:.5px;padding:4px 12px;border-radius:100px;margin-bottom:14px}
+  .pricing-section .pcmp{font-size:15px;color:rgba(255,255,255,.62);font-weight:700;text-decoration:line-through;margin-bottom:4px;height:20px}
+  .pricing-section .psave{display:block;background:linear-gradient(90deg,rgba(0,0,0,.22) 0%,rgba(0,0,0,.10) 100%);color:#fff;font-size:11px;font-weight:900;letter-spacing:1.4px;padding:9px 16px;border-radius:10px;margin:6px 0 22px;box-shadow:inset 0 1px 0 rgba(255,255,255,.15)}
 
   /* ── FLOATING PARTICLES ── */
   .pricing-section .pt{
@@ -1630,65 +1604,52 @@ color:#fff !important;
   <div class="pr">
     <div class="ph">
       <div><span class="stag">Packages</span></div>
-      <h2>Your Journey <span class="acc">Begins Here</span></h2>
-      <p class="lead">Every plan includes real-time updates of your credit report.</p>
+      <h2>Choose Your <span class="acc">Plan</span></h2>
+      <p class="lead">Every plan includes aggressive 3-bureau disputing — Equifax · Experian · TransUnion</p>
     </div>
 
     {{-- ───────── STEP 1 · CREDIT MONITORING — SmartCredit ───────── --}}
     <style>
       .sc-step{
-        max-width:980px;margin:0 auto 32px;
-        background:linear-gradient(120deg,#15803d 0%,#22c55e 24%,#f97316 60%,#dc2626 100%);
-        border:1.5px solid rgba(255,255,255,.25);
-        border-radius:22px;padding:32px 36px;
+        max-width:1080px;margin:0 auto 40px;
+        background:#ffffff;
+        border:1px solid #e5e7eb;
+        border-left:4px solid #0f2044;
+        border-radius:18px;padding:28px 34px;
         display:flex;align-items:center;justify-content:space-between;gap:28px;
         position:relative;overflow:hidden;
-        box-shadow:0 18px 50px rgba(220,38,38,.28),0 8px 22px rgba(34,197,94,.22),inset 0 1px 0 rgba(255,255,255,.22);
-      }
-      /* Dark scrim so white text stays readable over the bright gradient */
-      .sc-step::after{
-        content:'';position:absolute;inset:0;
-        background:linear-gradient(120deg,rgba(0,0,0,.30) 0%,rgba(0,0,0,.14) 45%,rgba(0,0,0,.34) 100%);
-        pointer-events:none;z-index:0;
-      }
-      .sc-step::before{
-        content:'';position:absolute;top:-70px;right:-50px;
-        width:260px;height:260px;border-radius:50%;
-        background:radial-gradient(circle,rgba(255,255,255,.22) 0%,transparent 70%);
-        pointer-events:none;z-index:0;
+        box-shadow:0 8px 24px rgba(15,32,68,.06),0 2px 6px rgba(15,32,68,.04);
       }
       .sc-step-l{flex:1;min-width:0;position:relative;z-index:2}
       .sc-eyebrow{
         display:inline-flex;align-items:center;gap:8px;
-        background:rgba(255,255,255,.22);color:#fff;border:1px solid rgba(255,255,255,.35);
-        font-size:11px;font-weight:900;letter-spacing:2px;text-transform:uppercase;
-        padding:7px 16px;border-radius:100px;margin-bottom:16px;
-        backdrop-filter:blur(2px);
+        background:#f1f5f9;color:#0f2044;border:1px solid #e2e8f0;
+        font-size:10.5px;font-weight:900;letter-spacing:2px;text-transform:uppercase;
+        padding:6px 14px;border-radius:100px;margin-bottom:14px;
       }
-      .sc-eyebrow::before{content:'';width:7px;height:7px;border-radius:50%;background:#fff;animation:ps-pulse 2s ease infinite}
+      .sc-eyebrow::before{content:'';width:7px;height:7px;border-radius:50%;background:#22c55e;animation:ps-pulse 2s ease infinite}
       .sc-step h3{
-        font-family:'Sora',sans-serif;font-size:clamp(22px,3vw,30px);
-        font-weight:900;color:#fff;line-height:1.18;margin-bottom:10px;
-        text-shadow:0 2px 8px rgba(0,0,0,.35);
+        font-family:'Sora',sans-serif;font-size:clamp(20px,2.6vw,26px);
+        font-weight:900;color:#0f2044;line-height:1.18;margin-bottom:8px;
       }
-      .sc-step h3 span{color:#fff;text-decoration:underline;text-decoration-color:rgba(255,255,255,.6);text-underline-offset:5px}
+      .sc-step h3 span{color:#15803d}
       .sc-step p{
-        font-size:14.5px;color:#fff;line-height:1.65;
-        font-weight:600;max-width:620px;text-shadow:0 1px 6px rgba(0,0,0,.35);
+        font-size:14px;color:#475569;line-height:1.6;
+        font-weight:500;max-width:640px;
       }
       .sc-step-r{flex-shrink:0;position:relative;z-index:2;text-align:center}
       .sc-btn{
         display:inline-flex;align-items:center;justify-content:center;gap:10px;
-        font-family:'Sora',sans-serif;font-size:15px;font-weight:900;letter-spacing:.3px;
-        padding:18px 38px;border-radius:14px;text-decoration:none;white-space:nowrap;
-        background:#fff;color:#15803d;
-        box-shadow:0 12px 30px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.6);
+        font-family:'Sora',sans-serif;font-size:14px;font-weight:800;letter-spacing:.3px;
+        padding:15px 30px;border-radius:12px;text-decoration:none;white-space:nowrap;
+        background:#0f2044;color:#fff;
+        box-shadow:0 6px 18px rgba(15,32,68,.22);
         transition:transform .25s cubic-bezier(.16,1,.3,1),box-shadow .25s ease,filter .25s ease;
       }
-      .sc-btn:hover{transform:translateY(-3px);box-shadow:0 18px 40px rgba(0,0,0,.34);filter:brightness(1.03)}
-      .sc-note{margin-top:12px;font-size:12px;color:rgba(255,255,255,.85);font-weight:700;text-shadow:0 1px 4px rgba(0,0,0,.3)}
+      .sc-btn:hover{transform:translateY(-2px);box-shadow:0 12px 28px rgba(15,32,68,.32);filter:brightness(1.06)}
+      .sc-note{margin-top:10px;font-size:11.5px;color:#64748b;font-weight:600}
       @media(max-width:860px){
-        .sc-step{flex-direction:column;align-items:flex-start;text-align:left;padding:30px 26px;gap:24px}
+        .sc-step{flex-direction:column;align-items:flex-start;text-align:left;padding:24px 22px;gap:18px}
         .sc-step-r{width:100%}
         .sc-btn{width:100%}
       }
@@ -1717,20 +1678,14 @@ color:#fff !important;
   <div class="badge-wrap"><div class="badge">{{ $ps_plan['badge'] }}</div></div>
   @endif
   <div class="pplan">{{ $ps_plan['label'] }}</div>
-  @if ($ps_key === 'monthly')
-  <div class="pcmp">&nbsp;</div>
-  <div class="pamt"><sup>$</sup>100<span style="font-size:18px;font-weight:700;letter-spacing:.5px;margin-left:6px;opacity:.9">/mo</span></div>
-  <div class="pper">Plus $197 enrollment</div>
-  <div class="psave">SAVE ${{ $ps_plan['save'] }}</div>
-  @else
-  <div class="pcmp">@if (!empty($ps_plan['compare_at']))${{ rtrim(rtrim(number_format((float) $ps_plan['compare_at'], 2), '0'), '.') }}@endif</div>
+  <div class="pcmp">@if (!empty($ps_plan['compare_at']))${{ number_format((float) $ps_plan['compare_at'], 0) }}@else&nbsp;@endif</div>
   <div class="pamt"><sup>$</sup>{{ $ps_plan['price_big'] }}</div>
   <div class="pper">{{ $ps_plan['period'] }}</div>
+  @if (!empty($ps_plan['monitoring_note']))
+  <div class="pcmn">{{ $ps_plan['monitoring_note'] }}</div>
+  @endif
   @if (!empty($ps_plan['save']))
   <div class="psave">SAVE ${{ $ps_plan['save'] }}</div>
-  @else
-  <div class="pcmn">{{ $ps_plan['sub_note'] ?? '' }}</div>
-  @endif
   @endif
   <div class="phr"></div>
   <ul class="pfeats">
@@ -1746,7 +1701,7 @@ color:#fff !important;
     </div>
 
     {{-- ───────────────────────────── CROA / Coaching Disclaimer ─────────────────── --}}
-    <div class="pricing-disclaimer" style="margin:42px auto 0;max-width:980px;padding:20px 24px;border-radius:14px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);font-size:13px;line-height:1.7;color:rgba(255,255,255,0.72);text-align:center">
+    <div class="pricing-disclaimer" style="margin:42px auto 0;max-width:1080px;padding:20px 24px;border-radius:14px;background:#f8fafc;border:1px solid #e5e7eb;font-size:13px;line-height:1.7;color:#475569;text-align:center">
       850 FICO Club is a credit repair organization as defined under the Credit Repair Organizations Act (CROA), 15 U.S.C. § 1679 <em>et seq.</em>
       In full compliance with CROA, no fees are collected until after the contracted services have been fully performed.
     </div>

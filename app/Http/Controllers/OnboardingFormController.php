@@ -12,7 +12,7 @@ class OnboardingFormController extends Controller
     {
         // Plan catalog — single source of truth (config/plans.php)
         $planCatalog = config('plans.plans');
-        $defaultPlan = config('plans.default', 'onetime');
+        $defaultPlan = config('plans.default', 'silver');
 
         // ── 1. Read payment metadata from session (set by AcceptJsPaymentController) ──
         $paymentSuccess = session('acceptjs_payment_success');
