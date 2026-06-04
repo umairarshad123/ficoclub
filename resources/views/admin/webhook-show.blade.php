@@ -93,10 +93,16 @@
       </div>
     </div>
 
-    {{-- ─── Raw JSON payload ─────────────────────────────────────────────── --}}
+    {{-- ─── Raw JSON payload (card data redacted for PCI safety) ─────────── --}}
     <div class="bg-white rounded-xl border border-gray-200 overflow-hidden" x-data="{ copied: false }">
       <div class="flex items-center justify-between px-5 py-3 border-b border-gray-200">
-        <h3 class="font-semibold text-ink">Raw Payload</h3>
+        <div>
+          <h3 class="font-semibold text-ink">Raw Payload</h3>
+          <div class="text-xs text-amber-700 mt-0.5 flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/></svg>
+            Card number, CVV, expiry & Accept.js tokens are masked here.
+          </div>
+        </div>
         <button type="button"
                 @click="navigator.clipboard.writeText($refs.payload.innerText); copied = true; setTimeout(() => copied = false, 1500)"
                 class="text-xs px-3 py-1.5 rounded-md border border-gray-200 hover:bg-gray-50 text-gray-700">
@@ -105,7 +111,7 @@
         </button>
       </div>
       <pre x-ref="payload"
-           class="font-mono text-[12px] leading-relaxed text-gray-800 p-5 overflow-x-auto whitespace-pre-wrap">{{ json_encode($event->payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) }}</pre>
+           class="font-mono text-[12px] leading-relaxed text-gray-800 p-5 overflow-x-auto whitespace-pre-wrap">{{ json_encode($event->sanitizedPayload(), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) }}</pre>
     </div>
 
   </div>

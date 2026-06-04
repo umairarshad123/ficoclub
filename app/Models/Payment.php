@@ -2,11 +2,24 @@
 
 namespace App\Models;
 
+use App\Support\CardRedactor;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Payment extends Model
 {
+    /**
+     * PCI-safe view of the stored raw_payload.
+     * Always use this in any admin view that renders the payload —
+     * never echo $payment->raw_payload directly.
+     */
+    public function sanitizedRawPayload(): array
+    {
+        $raw = $this->raw_payload;
+        if (!is_array($raw)) return [];
+        return CardRedactor::redact($raw);
+    }
+
     protected $fillable = [
         'subscription_id',
         'transaction_id',

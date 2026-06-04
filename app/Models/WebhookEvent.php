@@ -2,11 +2,24 @@
 
 namespace App\Models;
 
+use App\Support\CardRedactor;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class WebhookEvent extends Model
 {
+    /**
+     * PCI-safe view of the stored webhook payload.
+     * Always use this in any admin view that renders the payload —
+     * never echo $event->payload directly.
+     */
+    public function sanitizedPayload(): array
+    {
+        $raw = $this->payload;
+        if (!is_array($raw)) return [];
+        return CardRedactor::redact($raw);
+    }
+
     protected $fillable = [
         'notification_id',
         'event_type',
