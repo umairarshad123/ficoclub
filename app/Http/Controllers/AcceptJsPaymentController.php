@@ -419,6 +419,10 @@ class AcceptJsPaymentController extends Controller
                                 'paymentSchedule' => [
                                     'interval'         => ['length' => '1', 'unit' => 'months'],
                                     'startDate'        => now()->addMonth()->format('Y-m-d'),
+                                    // 9999 is Authorize.Net's documented sentinel for a
+                                    // subscription with NO end date — it bills every month
+                                    // for life until the customer or we cancel it. There is
+                                    // no fixed term; the membership never auto-ends.
                                     'totalOccurrences' => '9999',
                                     'trialOccurrences' => '0',
                                 ],
