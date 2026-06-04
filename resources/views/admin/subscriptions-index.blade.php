@@ -74,8 +74,18 @@
         @foreach (config('plans.plans') as $pk => $pv)
           <option value="{{ $pk }}" @selected(($filters['plan'] ?? '') === $pk)>{{ $pv['label'] }}</option>
         @endforeach
-        @foreach (['silver','gold','platinum'] as $p)
-          <option value="{{ $p }}" @selected(($filters['plan'] ?? '') === $p)>{{ ucfirst($p) }} (legacy)</option>
+        @php
+          $legacyPlans = [
+            'monthly'        => 'Monthly Plan',
+            'onetime'        => 'One-Time Plan',
+            'public_records' => 'Public Records Plan',
+            'vip'            => 'VIP Plan',
+            'couples'        => 'Couples Plan',
+            'test'           => 'Test Plan',
+          ];
+        @endphp
+        @foreach ($legacyPlans as $lk => $llabel)
+          <option value="{{ $lk }}" @selected(($filters['plan'] ?? '') === $lk)>{{ $llabel }} (legacy)</option>
         @endforeach
       </select>
     </div>
@@ -153,7 +163,13 @@
             </td>
             <td class="py-3 px-3 text-gray-700">{{ $s->plan_label }}</td>
             <td class="py-3 px-3 text-right">${{ number_format($s->amount, 2) }}</td>
-            <td class="py-3 px-3 text-right font-medium">${{ number_format($s->recurring_amount, 2) }}</td>
+            <td class="py-3 px-3 text-right font-medium">
+              @if ($s->recurring_amount)
+                ${{ number_format($s->recurring_amount, 2) }}
+              @else
+                <span class="text-gray-300">—</span>
+              @endif
+            </td>
             <td class="py-3 px-3"><x-status-badge :status="$s->status" /></td>
             <td class="py-3 px-3">
               @if ($s->referral_code)

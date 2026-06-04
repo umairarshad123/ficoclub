@@ -1555,11 +1555,13 @@ color:#fff !important;
   /* ── BUTTONS ── */
   .pricing-section .btn{
     display:inline-flex;align-items:center;justify-content:center;
-    font-family:'Sora',sans-serif;font-size:14px;font-weight:700;letter-spacing:.4px;
-    padding:16px 28px;border-radius:14px;text-decoration:none;cursor:pointer;border:none;
+    font-family:'Sora',sans-serif;font-size:14.5px;font-weight:800;letter-spacing:.5px;
+    padding:17px 28px;border-radius:14px;text-decoration:none;cursor:pointer;border:none;
     width:100%;margin-top:auto;position:relative;overflow:hidden;
-    transition:transform .35s cubic-bezier(.16,1,.3,1),box-shadow .35s ease,background .3s ease;
+    transition:transform .35s cubic-bezier(.16,1,.3,1),box-shadow .35s ease,background .3s ease,filter .3s ease;
   }
+  /* Pause ambient pulse on hover so the hover state can take over cleanly */
+  .pricing-section .btn:hover{animation:none!important}
   /* Secret honeypot field - completely hidden */
 .secret-field {
     position: absolute !important;
@@ -1578,13 +1580,89 @@ color:#fff !important;
   }
   .pricing-section .btn:hover::before{transform:translateX(100%)}
 
-  /* white CTA for Gold + Silver */
-  .pricing-section .btn-light{background:#fff;color:#1f2937;box-shadow:0 4px 20px rgba(0,0,0,.15)}
-  .pricing-section .btn-light:hover{transform:translateY(-3px) scale(1.02);box-shadow:0 10px 30px rgba(0,0,0,.25);background:#f8fafc}
+  /* ── WHITE CTA — Silver + Gold ── */
+  .pricing-section .btn-light{
+    background:linear-gradient(180deg,#ffffff 0%,#f8fafc 100%);
+    color:#0f172a;
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,.55),
+      0 8px 28px rgba(0,0,0,.24),
+      0 3px 8px rgba(0,0,0,.12),
+      inset 0 1px 0 rgba(255,255,255,1),
+      inset 0 -2px 0 rgba(15,23,42,.06);
+    animation:btn-glow-light 3s ease-in-out infinite;
+  }
+  .pricing-section .btn-light:hover{
+    transform:translateY(-4px) scale(1.025);
+    background:#ffffff;
+    box-shadow:
+      0 0 0 2px rgba(255,255,255,.95),
+      0 24px 60px rgba(255,255,255,.62),
+      0 12px 26px rgba(255,255,255,.42),
+      0 5px 14px rgba(0,0,0,.22),
+      inset 0 1px 0 rgba(255,255,255,1);
+  }
 
-  /* yellow CTA for Platinum */
-  .pricing-section .btn-gold{background:linear-gradient(180deg,#fde047 0%,#facc15 100%);color:#3b1d00;box-shadow:0 4px 20px rgba(234,179,8,.45),inset 0 1px 0 rgba(255,255,255,.55)}
-  .pricing-section .btn-gold:hover{transform:translateY(-3px) scale(1.02);box-shadow:0 10px 30px rgba(234,179,8,.55),inset 0 1px 0 rgba(255,255,255,.6);filter:brightness(1.05)}
+  /* ── YELLOW CTA — Platinum ── */
+  .pricing-section .btn-gold{
+    background:linear-gradient(180deg,#fef3c7 0%,#fde047 30%,#facc15 65%,#eab308 100%);
+    color:#3b1d00;font-weight:900;
+    box-shadow:
+      0 0 0 1px rgba(234,179,8,.55),
+      0 10px 32px rgba(250,204,21,.60),
+      0 4px 12px rgba(120,53,15,.22),
+      inset 0 1px 0 rgba(255,255,255,.88),
+      inset 0 -2px 0 rgba(120,53,15,.22);
+    animation:btn-glow-gold 2.8s ease-in-out infinite;
+  }
+  .pricing-section .btn-gold:hover{
+    transform:translateY(-4px) scale(1.025);
+    filter:brightness(1.08);
+    box-shadow:
+      0 0 0 2px rgba(234,179,8,.78),
+      0 24px 64px rgba(250,204,21,.92),
+      0 12px 28px rgba(250,204,21,.62),
+      0 5px 14px rgba(120,53,15,.25),
+      inset 0 1px 0 rgba(255,255,255,.96);
+  }
+
+  /* Ambient pulsing aura — soft heartbeat under every CTA */
+  @keyframes btn-glow-light{
+    0%,100%{
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,.55),
+        0 8px 28px rgba(0,0,0,.24),
+        0 0 18px 0 rgba(255,255,255,0),
+        inset 0 1px 0 rgba(255,255,255,1),
+        inset 0 -2px 0 rgba(15,23,42,.06);
+    }
+    50%{
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,.72),
+        0 8px 28px rgba(0,0,0,.24),
+        0 0 34px 6px rgba(255,255,255,.55),
+        inset 0 1px 0 rgba(255,255,255,1),
+        inset 0 -2px 0 rgba(15,23,42,.06);
+    }
+  }
+  @keyframes btn-glow-gold{
+    0%,100%{
+      box-shadow:
+        0 0 0 1px rgba(234,179,8,.55),
+        0 10px 32px rgba(250,204,21,.60),
+        0 0 20px 0 rgba(250,204,21,0),
+        inset 0 1px 0 rgba(255,255,255,.88),
+        inset 0 -2px 0 rgba(120,53,15,.22);
+    }
+    50%{
+      box-shadow:
+        0 0 0 1px rgba(234,179,8,.75),
+        0 10px 32px rgba(250,204,21,.65),
+        0 0 44px 10px rgba(250,204,21,.75),
+        inset 0 1px 0 rgba(255,255,255,.92),
+        inset 0 -2px 0 rgba(120,53,15,.22);
+    }
+  }
 
   /* ── COMPARE / SAVE ── */
   .pricing-section .pcmp{font-size:15px;color:rgba(255,255,255,.62);font-weight:700;text-decoration:line-through;margin-bottom:4px;height:20px}

@@ -6,16 +6,16 @@
 
 {{-- ─── KPI row ────────────────────────────────────────────────────────────── --}}
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-  <x-kpi label="Total Customers" :value="number_format($kpis['total_customers'])" sub="all-time signups" tone="slate" />
-  <x-kpi label="Active" :value="number_format($kpis['active'])" sub="paying customers" tone="green" />
-  <x-kpi label="MRR" :value="'$' . number_format($kpis['mrr'], 0)" sub="monthly recurring" tone="gold" />
-  <x-kpi label="At Risk" :value="number_format($kpis['at_risk'])" sub="in grace period" :tone="$kpis['at_risk'] > 0 ? 'amber' : 'slate'" />
+  <x-kpi label="Total Clients" :value="number_format($kpis['total_customers'])" sub="all-time enrollments" tone="slate" />
+  <x-kpi label="Enrolled" :value="number_format($kpis['active'])" sub="active programs" tone="green" />
+  <x-kpi label="Recurring (legacy)" :value="'$' . number_format($kpis['mrr'], 0)" sub="legacy ARB subs only" tone="gold" />
+  <x-kpi label="At Risk (legacy)" :value="number_format($kpis['at_risk'])" sub="in grace period" :tone="$kpis['at_risk'] > 0 ? 'amber' : 'slate'" />
 </div>
 
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-  <x-kpi label="Past Due" :value="number_format($kpis['past_due'])" sub="failed payments" tone="amber" />
-  <x-kpi label="Cancelled" :value="number_format($kpis['cancelled'])" sub="terminated subs" tone="red" />
-  <x-kpi label="New This Month" :value="number_format($kpis['new_subs_this_month'])" :sub="'$' . number_format($kpis['month_initial_revenue'], 0) . ' initial revenue'" tone="slate" />
+  <x-kpi label="Past Due (legacy)" :value="number_format($kpis['past_due'])" sub="failed recurring payments" tone="amber" />
+  <x-kpi label="Cancelled" :value="number_format($kpis['cancelled'])" sub="terminated enrollments" tone="red" />
+  <x-kpi label="New This Month" :value="number_format($kpis['new_subs_this_month'])" :sub="'$' . number_format($kpis['month_initial_revenue'], 0) . ' program revenue'" tone="slate" />
   <x-kpi label="Lead Conversion" :value="$kpis['conversion_pct'] . '%'" :sub="number_format($kpis['total_leads']) . ' total leads'" tone="slate" />
 </div>
 
@@ -34,15 +34,15 @@
 @endphp
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
   <x-kpi label="Cash This Month" :value="'$' . number_format($kpis['revenue_this_month'], 0)" :sub="$deltaLabel" :tone="$revTone" />
-  <x-kpi label="Net New MRR" :value="$netMrrLabel" :sub="'+$' . number_format($kpis['mrr_added'], 0) . ' / -$' . number_format($kpis['mrr_lost'], 0)" :tone="$netMrrTone" />
-  <x-kpi label="Churn (this month)" :value="$kpis['churn_pct'] . '%'" sub="monthly attrition" :tone="$churnTone" />
-  <x-kpi label="Recovery Rate (30d)" :value="$recovLabel" sub="past_due → active" :tone="$recovTone" />
+  <x-kpi label="Net New Recurring (legacy)" :value="$netMrrLabel" :sub="'+$' . number_format($kpis['mrr_added'], 0) . ' / -$' . number_format($kpis['mrr_lost'], 0)" :tone="$netMrrTone" />
+  <x-kpi label="Cancel Rate (legacy)" :value="$kpis['churn_pct'] . '%'" sub="legacy recurring attrition" :tone="$churnTone" />
+  <x-kpi label="Recovery Rate (legacy)" :value="$recovLabel" sub="past_due → active" :tone="$recovTone" />
 </div>
 
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-  <x-kpi label="ARPU" :value="'$' . number_format($kpis['arpu'], 0)" sub="avg / active customer" tone="slate" />
-  <x-kpi label="Avg Lifetime" :value="number_format($kpis['avg_lifetime_days'], 0) . ' days'" sub="for churned subs" tone="slate" />
-  <x-kpi label="Cash Last Month" :value="'$' . number_format($kpis['revenue_last_month'], 0)" sub="initial + recurring − refunds" tone="slate" />
+  <x-kpi label="Avg Recurring (legacy)" :value="'$' . number_format($kpis['arpu'], 0)" sub="per active legacy sub" tone="slate" />
+  <x-kpi label="Avg Lifetime" :value="number_format($kpis['avg_lifetime_days'], 0) . ' days'" sub="for cancelled enrollments" tone="slate" />
+  <x-kpi label="Cash Last Month" :value="'$' . number_format($kpis['revenue_last_month'], 0)" sub="payments − refunds" tone="slate" />
   <x-kpi label="Webhooks Today" :value="number_format($health['webhooks_today_total'])" :sub="number_format($health['webhooks_last_hour']) . ' in last hour'" tone="slate" />
 </div>
 
@@ -137,7 +137,7 @@
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
   <div class="bg-white rounded-xl border border-gray-200 p-5">
     <div class="flex items-center justify-between mb-3">
-      <h2 class="font-semibold text-ink">MRR Trend (12 Months)</h2>
+      <h2 class="font-semibold text-ink">Recurring Trend (12 Months · legacy)</h2>
     </div>
     <div class="relative w-full" style="height: 280px; max-height: 400px;">
       <canvas id="mrrChart"></canvas>
@@ -146,7 +146,7 @@
 
   <div class="bg-white rounded-xl border border-gray-200 p-5">
     <div class="flex items-center justify-between mb-3">
-      <h2 class="font-semibold text-ink">New Signups by Plan</h2>
+      <h2 class="font-semibold text-ink">New Enrollments by Plan</h2>
     </div>
     <div class="relative w-full" style="height: 280px; max-height: 400px;">
       <canvas id="signupsChart"></canvas>
@@ -170,11 +170,11 @@
       <thead class="text-xs uppercase text-gray-500 bg-gray-50 border-b border-gray-200">
         <tr>
           <th class="text-left py-2.5 px-5 font-medium">Plan</th>
-          <th class="text-right py-2.5 px-3 font-medium">Active</th>
+          <th class="text-right py-2.5 px-3 font-medium">Enrolled</th>
           <th class="text-right py-2.5 px-3 font-medium">Past Due</th>
           <th class="text-right py-2.5 px-3 font-medium">Cancelled</th>
-          <th class="text-right py-2.5 px-3 font-medium">Churn</th>
-          <th class="text-right py-2.5 px-5 font-medium">MRR</th>
+          <th class="text-right py-2.5 px-3 font-medium">Cancel %</th>
+          <th class="text-right py-2.5 px-5 font-medium">Recurring</th>
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-100">
@@ -263,9 +263,9 @@
         <tr>
           <th class="text-left py-2.5 px-5 font-medium">Code</th>
           <th class="text-right py-2.5 px-3 font-medium">Signups</th>
-          <th class="text-right py-2.5 px-3 font-medium">Active</th>
+          <th class="text-right py-2.5 px-3 font-medium">Enrolled</th>
           <th class="text-right py-2.5 px-3 font-medium">Cancelled</th>
-          <th class="text-right py-2.5 px-5 font-medium">MRR</th>
+          <th class="text-right py-2.5 px-5 font-medium">Recurring</th>
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-100">
@@ -293,7 +293,7 @@
     data: {
       labels: @json(array_column($mrrSeries, 'label')),
       datasets: [{
-        label: 'MRR',
+        label: 'Recurring (legacy)',
         data: @json(array_column($mrrSeries, 'value')),
         borderColor: '#b8a449',
         backgroundColor: 'rgba(184, 164, 73, 0.1)',

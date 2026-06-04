@@ -118,8 +118,7 @@ class AcceptJsPaymentController extends Controller
                 $planKey      = isset($planCatalog[$validated['selected_plan'] ?? '']) ? $validated['selected_plan'] : $defaultPlan;
                 $amount       = $planCatalog[$planKey]['amount'];
                 $planLabel    = $planCatalog[$planKey]['label'];
-                $recurringAmt = $planCatalog[$planKey]['recurring']; // null = one-time, no ARB
-                $isCouples    = (bool) ($planCatalog[$planKey]['is_couples'] ?? false);
+                $recurringAmt = $planCatalog[$planKey]['recurring']; // null = one-time (every current plan)
 
         Log::info('Plan resolved from request', [
             'selected_plan_input' => $validated['selected_plan'] ?? null,
@@ -310,238 +309,14 @@ class AcceptJsPaymentController extends Controller
                 // ─────────────────────────────────────────────────────────────
 
                 // ═══════════════════════════════════════════════════════════════
-                // SUBSCRIPTION FLOW — only plans with a recurring amount (monthly)
+                // ONE-TIME ENROLLMENT ONLY
+                // No CIM profile, no ARB subscription — the entire catalogue
+                // is one-time program fees. The block that used to create
+                // recurring billing in Authorize.Net has been removed.
                 // ═══════════════════════════════════════════════════════════════
                 $customerProfileId        = null;
                 $customerPaymentProfileId = null;
                 $subscriptionId           = null;
-
-                if ($recurringAmt !== null) {
-
-                    Log::info('Recurring subscription flow started', [
-                        'invoice'      => $invoiceNumber,
-                        'transId'      => $transId,
-                        'plan_key'     => $planKey,
-                        'plan_label'   => $planLabel,
-                        'recurringAmt' => $recurringAmt,
-                    ]);
-
-                    Log::info('Creating CIM customer profile from transaction', [
-                        'invoice' => $invoiceNumber,
-                        'transId' => $transId,
-                    ]);
-
-                    $cimPayload = [
-                        'createCustomerProfileFromTransactionRequest' => [
-                            'merchantAuthentication' => [
-                                'name'           => $apiLoginId,
-                                'transactionKey' => $txKey,
-                            ],
-                            'transId'  => $transId,
-                            'customer' => [
-                                'email' => $validated['email'],
-                            ],
-                        ],
-                    ];
-
-                    Log::info('CIM payload prepared', [
-                        'invoice' => $invoiceNumber,
-                        'transId' => $transId,
-                        'email'   => $validated['email'],
-                    ]);
-
-                    $cimResponse = Http::withHeaders([
-                        'Content-Type' => 'application/json',
-                        'Accept'       => 'application/json'
-                    ])->post($endpoint, $cimPayload);
-
-                    Log::info('CIM raw HTTP response received', [
-                        'invoice'    => $invoiceNumber,
-                        'status'     => $cimResponse->status(),
-                        'successful' => $cimResponse->successful(),
-                        'failed'     => $cimResponse->failed(),
-                        'body'       => $cimResponse->body(),
-                    ]);
-
-                    $cimRaw  = $cimResponse->body();
-                    $cimRaw  = preg_replace('/^\xEF\xBB\xBF/', '', $cimRaw);
-                    $cimData = json_decode(trim($cimRaw), true);
-
-                    Log::info('CIM profile response', [
-                        'invoice'         => $invoiceNumber,
-                        'response'        => $cimData,
-                        'json_last_error' => json_last_error_msg(),
-                    ]);
-
-                    $cimResultCode            = data_get($cimData, 'messages.resultCode');
-                    $customerProfileId        = data_get($cimData, 'customerProfileId');
-                    $customerPaymentProfileId = data_get($cimData, 'customerPaymentProfileIdList.numericString.0')
-                        ?? data_get($cimData, 'customerPaymentProfileIdList.0');
-
-                    Log::info('Parsed CIM response values', [
-                        'invoice'                  => $invoiceNumber,
-                        'cimResultCode'            => $cimResultCode,
-                        'customerProfileId'        => $customerProfileId,
-                        'customerPaymentProfileId' => $customerPaymentProfileId,
-                    ]);
-
-                    if ($cimResultCode !== 'Ok' || !$customerProfileId || !$customerPaymentProfileId) {
-                        Log::error('CIM profile creation failed', [
-                            'invoice'  => $invoiceNumber,
-                            'response' => $cimData,
-                        ]);
-
-                        return response()->json([
-                            'success' => false,
-                            'message' => 'Your payment was captured but we could not set up your monthly subscription. Please contact support with invoice ' . $invoiceNumber . '.',
-                        ], 422);
-                    }
-
-                    Log::info('CIM profile created', [
-                        'invoice'                  => $invoiceNumber,
-                        'customerProfileId'        => $customerProfileId,
-                        'customerPaymentProfileId' => $customerPaymentProfileId,
-                    ]);
-
-                    // Allow Authorize.Net time to fully commit the CIM profile
-                    // before firing the ARB subscription request (prevents E00040)
-                    sleep(1);
-
-                    $arbPayload = [
-                        'ARBCreateSubscriptionRequest' => [
-                            'merchantAuthentication' => [
-                                'name'           => $apiLoginId,
-                                'transactionKey' => $txKey,
-                            ],
-                            'refId'        => (string) Str::uuid(),
-                            'subscription' => [
-                                'name'            => $planLabel . ' Monthly',
-                                'paymentSchedule' => [
-                                    'interval'         => ['length' => '1', 'unit' => 'months'],
-                                    'startDate'        => now()->addMonth()->format('Y-m-d'),
-                                    // 9999 is Authorize.Net's documented sentinel for a
-                                    // subscription with NO end date — it bills every month
-                                    // for life until the customer or we cancel it. There is
-                                    // no fixed term; the membership never auto-ends.
-                                    'totalOccurrences' => '9999',
-                                    'trialOccurrences' => '0',
-                                ],
-                                'amount'      => $recurringAmt,
-                                'trialAmount' => '0.00',
-                                'profile'     => [
-                                    'customerProfileId'        => $customerProfileId,
-                                    'customerPaymentProfileId' => $customerPaymentProfileId,
-                                ],
-                            ],
-                        ],
-                    ];
-
-                    Log::info('ARB payload prepared', [
-                        'invoice'                  => $invoiceNumber,
-                        'refId'                    => $arbPayload['ARBCreateSubscriptionRequest']['refId'],
-                        'subscription_name'        => $planLabel . ' Monthly',
-                        'subscription_amount'      => $recurringAmt,
-                        'subscription_start_date'  => now()->addMonth()->format('Y-m-d'),
-                        'customerProfileId'        => $customerProfileId,
-                        'customerPaymentProfileId' => $customerPaymentProfileId,
-                    ]);
-
-                    // Retry up to 3 attempts in case CIM profile is not yet
-                    // fully propagated on Authorize.Net's side (E00040)
-                    $arbMaxAttempts = 3;
-                    $arbAttempt     = 0;
-                    $arbResultCode  = null;
-                    $subscriptionId = null;
-                    $arbData        = null;
-
-                    while ($arbAttempt < $arbMaxAttempts) {
-                        $arbAttempt++;
-
-                        if ($arbAttempt > 1) {
-                            Log::info('ARB retry attempt', [
-                                'invoice' => $invoiceNumber,
-                                'attempt' => $arbAttempt,
-                            ]);
-                            sleep(1);
-                        }
-
-                        $arbResponse = Http::withHeaders([
-                            'Content-Type' => 'application/json',
-                            'Accept'       => 'application/json'
-                        ])->post($endpoint, $arbPayload);
-
-                        Log::info('ARB raw HTTP response received', [
-                            'invoice'    => $invoiceNumber,
-                            'attempt'    => $arbAttempt,
-                            'status'     => $arbResponse->status(),
-                            'successful' => $arbResponse->successful(),
-                            'failed'     => $arbResponse->failed(),
-                            'body'       => $arbResponse->body(),
-                        ]);
-
-                        $arbRaw  = $arbResponse->body();
-                        $arbRaw  = preg_replace('/^\xEF\xBB\xBF/', '', $arbRaw);
-                        $arbData = json_decode(trim($arbRaw), true);
-
-                        Log::info('ARB subscription response', [
-                            'invoice'         => $invoiceNumber,
-                            'attempt'         => $arbAttempt,
-                            'response'        => $arbData,
-                            'json_last_error' => json_last_error_msg(),
-                        ]);
-
-                        $arbResultCode  = data_get($arbData, 'messages.resultCode');
-                        $subscriptionId = data_get($arbData, 'subscriptionId');
-
-                        Log::info('Parsed ARB response values', [
-                            'invoice'        => $invoiceNumber,
-                            'attempt'        => $arbAttempt,
-                            'arbResultCode'  => $arbResultCode,
-                            'subscriptionId' => $subscriptionId,
-                        ]);
-
-                        if ($arbResultCode === 'Ok' && $subscriptionId) {
-                            break; // Success — exit retry loop
-                        }
-
-                        Log::warning('ARB attempt failed, will retry if attempts remain', [
-                            'invoice'        => $invoiceNumber,
-                            'attempt'        => $arbAttempt,
-                            'arbResultCode'  => $arbResultCode,
-                            'subscriptionId' => $subscriptionId,
-                            'response'       => $arbData,
-                        ]);
-                    }
-
-                    if ($arbResultCode !== 'Ok' || !$subscriptionId) {
-                        Log::error('ARB subscription creation failed after all attempts', [
-                            'invoice'      => $invoiceNumber,
-                            'attempts'     => $arbAttempt,
-                            'response'     => $arbData,
-                        ]);
-
-                        return response()->json([
-                            'success' => false,
-                            'message' => 'Your payment was captured but the monthly subscription could not be created. Please contact support with invoice ' . $invoiceNumber . '.',
-                        ], 422);
-                    }
-
-                    Log::info('ARB subscription created successfully', [
-                        'invoice'        => $invoiceNumber,
-                        'attempt'        => $arbAttempt,
-                        'subscriptionId' => $subscriptionId,
-                        'recurringAmt'   => $recurringAmt,
-                        'startDate'      => now()->addMonth()->format('Y-m-d'),
-                    ]);
-
-                } else {
-                    Log::info('Recurring subscription skipped because selected plan is one-time', [
-                        'invoice'    => $invoiceNumber,
-                        'plan_key'   => $planKey,
-                        'plan_label' => $planLabel,
-                    ]);
-                }
-                // ═══════════════════════════════════════════════════════════════
 
                 // ─────────────────────────────────────────────────────────────
                 // SAVE SUBSCRIPTION TO DATABASE
@@ -569,7 +344,9 @@ class AcceptJsPaymentController extends Controller
                         'referral_code'               => $referralCode,
                         'status'                      => 'active',
                         'subscribed_at'               => now(),
-                        'next_billing_date'           => now()->addMonth(),
+                        // One-time plans never bill again; next_billing_date stays null.
+                        // Only legacy / future recurring plans (recurring_amount set) get a date.
+                        'next_billing_date'           => $recurringAmt !== null ? now()->addMonth() : null,
                     ]);
 
                     Log::info('Subscription saved to database', [
@@ -584,17 +361,9 @@ class AcceptJsPaymentController extends Controller
                 }
                 // ─────────────────────────────────────────────────────────────
 
-                // Couples plan → route into the husband/wife onboarding hub.
-                $redirectPath = $isCouples ? '/couples-onboarding' : '/onboardingform';
-
-                if ($isCouples) {
-                    session([
-                        'couples_flow'        => true,
-                        'couples_invoice'     => $invoiceNumber,
-                        'couples_husband_done'=> false,
-                        'couples_wife_done'   => false,
-                    ]);
-                }
+                // Every plan in the current catalogue is single-customer, one-time.
+                // (Couples flow is retired; legacy `is_couples` plans no longer exist.)
+                $redirectPath = '/onboardingform';
 
                 session([
                     'acceptjs_payment_success' => true,
@@ -678,7 +447,6 @@ class AcceptJsPaymentController extends Controller
                     'invoice'        => $invoiceNumber,
                     'transaction_id' => $transId,
                     'referral_code'  => $referralCode,
-                    'is_couples'     => $isCouples,
                     'redirect'       => url($redirectPath),
                 ]);
 

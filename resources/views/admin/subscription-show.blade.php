@@ -43,7 +43,13 @@
         </div>
         <div>
           <div class="text-xs text-gray-500 uppercase">Recurring</div>
-          <div class="font-medium">${{ number_format($sub->recurring_amount, 2) }} / mo</div>
+          <div class="font-medium">
+            @if ($sub->recurring_amount)
+              ${{ number_format($sub->recurring_amount, 2) }} / mo
+            @else
+              <span class="text-gray-400">— one-time</span>
+            @endif
+          </div>
         </div>
         <div>
           <div class="text-xs text-gray-500 uppercase">Lifetime Revenue</div>
