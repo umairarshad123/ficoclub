@@ -153,5 +153,36 @@ return [
             'best_for'        => 'Clients preparing for a mortgage, major funding, or who want a dedicated specialist handling everything start to finish.',
         ],
 
+        // ───────────────────────────── $2,000 ────────────────────────────
+        'premium' => [
+            'key'          => 'premium',
+            'label'        => 'Premium Plan',
+            'tag'          => 'PREMIUM PLAN',
+            'tagline'      => 'Complete Credit Overhaul',
+            'desc'         => 'Our most complete credit program. One single payment covering the full scope of disputes, public-records work and lifetime guidance.',
+            'amount'       => '2000.00',
+            'recurring'    => null,
+            'compare_at'   => null,
+            'save'         => null,
+            'price_big'    => '2,000',
+            'period'       => 'complete program',
+            'billing_note' => 'single program fee · zero recurring',
+            'sub_note'     => 'No recurring fees',
+            'color'        => 'cb',
+            'btn'          => 'btn-b',
+            'tag_class'    => 'navy-tag',
+            'badge'        => null,
+            'is_couples'   => false,
+            'cta'          => 'Start Premium',
+            'features'     => [
+                'One single payment — zero recurring, ever',
+                'Aggressive priority disputes across all 3 bureaus',
+                'Public records: bankruptcies, repossessions, student loans, medical bills & child support addressed',
+                'Dedicated specialist for the full program',
+                'Monthly progress reports + live score tracking',
+                '24/7 client portal access + lifetime credit guidance',
+            ],
+        ],
+
     ],
 ];
