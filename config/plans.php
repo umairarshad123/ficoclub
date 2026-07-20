@@ -154,10 +154,10 @@ return [
         ],
 
         // ───────────────────────────── $2,000 ────────────────────────────
-        'premium' => [
-            'key'             => 'premium',
-            'label'           => 'Premium Plan',
-            'tag'             => 'PREMIUM PLAN',
+        'signature' => [
+            'key'             => 'signature',
+            'label'           => 'Signature Plan',
+            'tag'             => 'SIGNATURE PLAN',
             'tagline'         => 'Complete Credit Overhaul',
             'desc'            => 'Our most complete credit program. One single payment covering the full scope of disputes, public-records work and lifetime guidance.',
             'amount'          => '2000.00',
@@ -174,7 +174,7 @@ return [
             'tag_class'       => 'platinum-tag',
             'badge'           => null,
             'is_couples'      => false,
-            'cta'             => 'Apply For Premium',
+            'cta'             => 'Apply For Signature',
             'features'        => [
                 'Everything included — full disputes across all 3 bureaus',
                 'Done-for-you service — we handle everything, you do nothing',
