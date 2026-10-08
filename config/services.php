@@ -28,7 +28,6 @@ return [
         'sheet_id'          => env('GOOGLE_SHEET_ID'),
         'clients_sheet_id'  => env('GOOGLE_CLIENTS_SHEET_ID', '1WXqGNrvWK7dvUxwowuswkv0mDT0e8aaqfzQCOnPzvuE'),
         'credentials_path'  => env('GOOGLE_CREDENTIALS_PATH'),
-        'sheets_webhook_url'=> env('GOOGLE_SHEETS_WEBHOOK_URL'),
     ],
 
     'ghl' => [
