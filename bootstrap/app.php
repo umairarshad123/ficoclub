@@ -11,6 +11,12 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
 ->withMiddleware(function (Middleware $middleware) {
+    // "Under maintenance" gate — runs before everything else. See config/maintenance.php.
+    $middleware->prepend(\App\Http\Middleware\SiteMaintenance::class);
+    $middleware->encryptCookies(except: [
+        \App\Http\Middleware\SiteMaintenance::PREVIEW_COOKIE,
+    ]);
+
     $middleware->validateCsrfTokens(except: [
         'webhooks/authorize-net',
     ]);
