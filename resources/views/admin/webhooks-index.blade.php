@@ -152,6 +152,9 @@
               <span class="inline-flex px-2 py-0.5 rounded-full text-[11px] font-semibold {{ $catCls }}">
                 {{ ucfirst($ev->category()) }}
               </span>
+              <span class="inline-flex px-2 py-0.5 rounded-full text-[11px] font-semibold {{ $ev->provider === 'commas' ? 'bg-indigo-100 text-indigo-800' : 'bg-gray-100 text-gray-600' }}">
+                {{ $ev->provider === 'commas' ? 'Commas' : 'Auth.net' }}
+              </span>
               <div class="font-mono text-[11px] text-gray-700 mt-1">{{ $shortType }}</div>
               @if ($ev->description)
                 <div class="text-xs text-gray-500 mt-1 max-w-md">{{ $ev->description }}</div>
@@ -203,7 +206,7 @@
               <div class="text-3xl mb-2">📭</div>
               <div class="text-sm text-gray-600 font-medium">No webhooks yet</div>
               <div class="text-xs text-gray-400 mt-1">
-                Once Authorize.Net posts to <span class="font-mono">/webhooks/authorize-net</span>, rows will appear here.
+                Rows appear here as Commas (<span class="font-mono">/webhooks/commas</span>) and Authorize.Net (<span class="font-mono">/webhooks/authorize-net</span>) post events.
               </div>
             </td>
           </tr>

@@ -84,16 +84,40 @@ Route::post('/credit-roadmap/submit', [CreditRoadmapController::class, 'submit']
 */
 
 use App\Http\Controllers\AcceptJsPaymentController;
+use App\Http\Controllers\CommasCheckoutController;
+use App\Http\Controllers\CommasWebhookController;
 
 Route::middleware(['web', 'referral'])->group(function () {
 
-    Route::get('/accept-checkout', [AcceptJsPaymentController::class, 'showCheckout'])
+    // PAYMENT_PROVIDER (config/payments.php) picks which checkout this URL renders.
+    Route::get('/accept-checkout', config('payments.provider') === 'commas'
+            ? [CommasCheckoutController::class, 'show']
+            : [AcceptJsPaymentController::class, 'showCheckout'])
         ->name('accept.checkout');
 
+    // Legacy raw-card charge — refuses to run once Commas is the active provider.
     Route::post('/accept-payment', [AcceptJsPaymentController::class, 'processPayment'])
         ->name('accept.payment');
 
+    // Commas embedded checkout
+    Route::post('/checkout/order', [CommasCheckoutController::class, 'createOrder'])
+        ->middleware('throttle:10,1')
+        ->name('checkout.order');
+    Route::post('/checkout/confirm', [CommasCheckoutController::class, 'confirm'])
+        ->middleware('throttle:30,1')
+        ->name('checkout.confirm');
+    Route::get('/checkout/status/{uuid}', [CommasCheckoutController::class, 'status'])
+        ->middleware('throttle:60,1')
+        ->whereUuid('uuid')
+        ->name('checkout.status');
+    Route::get('/checkout/complete/{uuid}', [CommasCheckoutController::class, 'complete'])
+        ->whereUuid('uuid')
+        ->name('checkout.complete');
+
 });
+
+Route::post('/webhooks/commas', [CommasWebhookController::class, 'handle'])
+    ->name('webhooks.commas');
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ADD THESE ROUTES TO YOUR routes/web.php
@@ -170,6 +194,9 @@ Route::middleware('admin.auth')->group(function () {
         // Payments (all-payments listing — initial / recurring / refund / void)
         Route::get('/payments',         [DashboardController::class, 'paymentsIndex'])->name('admin.payments');
         Route::get('/payments/export',  [DashboardController::class, 'paymentsExportCsv'])->name('admin.payments.csv');
+
+        // Checkout orders (Commas) — every checkout attempt, paid or not
+        Route::get('/orders', [DashboardController::class, 'ordersIndex'])->name('admin.orders');
 
         // Leads (NEW)
         Route::get('/leads',          [DashboardController::class, 'leadsIndex'])->name('admin.leads');

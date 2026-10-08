@@ -30,6 +30,7 @@ class Payment extends Model
         'event_type_raw',
         'charged_at',
         'raw_payload',
+        'provider',
     ];
 
     protected $casts = [

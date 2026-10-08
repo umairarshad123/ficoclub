@@ -48,8 +48,40 @@
 
 {{-- ─── Operational Health widget ──────────────────────────────────────────── --}}
 <div class="bg-white rounded-xl border border-gray-200 overflow-hidden mb-6">
-  <div class="px-5 py-3 border-b border-gray-200">
+  <div class="px-5 py-3 border-b border-gray-200 flex items-center justify-between">
     <h2 class="font-semibold text-ink">System Health</h2>
+    <span class="text-xs text-gray-500">Live checkout: <span class="font-semibold text-ink">{{ $health['payment_provider'] === 'commas' ? 'Commas' : 'Authorize.Net' }}</span></span>
+  </div>
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-0 divide-y lg:divide-y-0 lg:divide-x divide-gray-100 border-b border-gray-100">
+    <div class="p-4">
+      <div class="text-xs text-gray-500 uppercase tracking-wide">Last Commas Webhook</div>
+      <div class="text-lg font-semibold mt-1 {{ $health['last_commas_webhook_at'] && $health['last_commas_webhook_at']->gt(now()->subDay()) ? 'text-green-700' : 'text-amber-700' }}">
+        {{ $health['last_commas_webhook_at'] ? $health['last_commas_webhook_at']->diffForHumans() : 'never' }}
+      </div>
+      <div class="text-xs text-gray-500 mt-1">
+        {{ number_format($health['orders_paid_today']) }} website {{ \Illuminate\Support\Str::plural('order', $health['orders_paid_today']) }} paid today
+      </div>
+    </div>
+    <div class="p-4">
+      <div class="text-xs text-gray-500 uppercase tracking-wide">Last Commas Reconcile</div>
+      <div class="text-lg font-semibold mt-1 {{ $health['last_reconcile_at'] && $health['last_reconcile_at']->gt(now()->subMinutes(30)) ? 'text-green-700' : 'text-amber-700' }}">
+        {{ $health['last_reconcile_at'] ? $health['last_reconcile_at']->diffForHumans() : 'never' }}
+      </div>
+      <div class="text-xs text-gray-500 mt-1">every 10 min — catches lost webhooks</div>
+    </div>
+    <div class="p-4">
+      <div class="text-xs text-gray-500 uppercase tracking-wide">Orders Needing Review</div>
+      <div class="text-lg font-semibold mt-1 {{ $health['orders_mismatch'] > 0 ? 'text-red-700' : 'text-green-700' }}">
+        {{ number_format($health['orders_mismatch']) }}
+      </div>
+      <div class="text-xs text-gray-500 mt-1">
+        @if ($health['orders_mismatch'] > 0)
+          <a href="{{ route('admin.orders', ['status' => 'mismatch']) }}" class="text-red-700 font-medium hover:underline">paid, but product/amount didn't match →</a>
+        @else
+          all paid orders matched their plan
+        @endif
+      </div>
+    </div>
   </div>
   <div class="grid grid-cols-1 lg:grid-cols-4 gap-0 divide-y lg:divide-y-0 lg:divide-x divide-gray-100">
     <div class="p-4">

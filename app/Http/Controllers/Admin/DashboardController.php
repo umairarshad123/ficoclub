@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\CheckoutOrder;
 use App\Models\Lead;
 use App\Models\Payment;
 use App\Models\Subscription;
@@ -139,10 +140,11 @@ class DashboardController extends Controller
             });
         }
 
-        if ($type   = $request->input('type'))   { $query->where('type', $type); }
-        if ($status = $request->input('status')) { $query->where('status', $status); }
-        if ($from   = $request->input('from'))   { $query->whereDate('charged_at', '>=', $from); }
-        if ($to     = $request->input('to'))     { $query->whereDate('charged_at', '<=', $to); }
+        if ($type     = $request->input('type'))     { $query->where('type', $type); }
+        if ($status   = $request->input('status'))   { $query->where('status', $status); }
+        if ($provider = $request->input('provider')) { $query->where('provider', $provider); }
+        if ($from     = $request->input('from'))     { $query->whereDate('charged_at', '>=', $from); }
+        if ($to       = $request->input('to'))       { $query->whereDate('charged_at', '<=', $to); }
 
         $payments = $query->orderByDesc('charged_at')
                           ->orderByDesc('id')
@@ -171,7 +173,7 @@ class DashboardController extends Controller
 
         return view('admin.payments-index', [
             'payments'  => $payments,
-            'filters'   => $request->only(['q', 'type', 'status', 'from', 'to']),
+            'filters'   => $request->only(['q', 'type', 'status', 'provider', 'from', 'to']),
             'tabCounts' => $tabCounts,
             'totals'    => $totals,
         ]);
@@ -195,10 +197,11 @@ class DashboardController extends Controller
                   });
             });
         }
-        if ($type   = $request->input('type'))   { $query->where('type', $type); }
-        if ($status = $request->input('status')) { $query->where('status', $status); }
-        if ($from   = $request->input('from'))   { $query->whereDate('charged_at', '>=', $from); }
-        if ($to     = $request->input('to'))     { $query->whereDate('charged_at', '<=', $to); }
+        if ($type     = $request->input('type'))     { $query->where('type', $type); }
+        if ($status   = $request->input('status'))   { $query->where('status', $status); }
+        if ($provider = $request->input('provider')) { $query->where('provider', $provider); }
+        if ($from     = $request->input('from'))     { $query->whereDate('charged_at', '>=', $from); }
+        if ($to       = $request->input('to'))       { $query->whereDate('charged_at', '<=', $to); }
 
         $filename = 'payments-' . now()->format('Ymd-His') . '.csv';
 
@@ -208,7 +211,7 @@ class DashboardController extends Controller
                 'Charged At', 'Type', 'Status', 'Amount',
                 'Customer', 'Email', 'Plan',
                 'Transaction ID', 'Invoice #', 'Subscription ID',
-                'Event Type', 'Created At',
+                'Event Type', 'Processor', 'Created At',
             ]);
             $query->orderByDesc('charged_at')->chunk(500, function ($rows) use ($out) {
                 foreach ($rows as $p) {
@@ -225,6 +228,7 @@ class DashboardController extends Controller
                         $p->invoice_number,
                         $p->subscription_id,
                         $p->event_type_raw,
+                        $p->provider,
                         optional($p->created_at)->format('Y-m-d H:i:s'),
                     ]);
                 }
@@ -232,6 +236,40 @@ class DashboardController extends Controller
             fclose($out);
         }, $filename, [
             'Content-Type' => 'text/csv; charset=UTF-8',
+        ]);
+    }
+
+    // ═════════════════════════════════════════════════════════════════════════
+    // CHECKOUT ORDERS — Commas checkout attempts (pending / paid / mismatch)
+    // ═════════════════════════════════════════════════════════════════════════
+    public function ordersIndex(Request $request)
+    {
+        $query = CheckoutOrder::query();
+
+        if ($search = trim((string) $request->input('q', ''))) {
+            $query->where(function ($w) use ($search) {
+                $w->where('first_name', 'like', "%{$search}%")
+                  ->orWhere('last_name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('phone', 'like', "%{$search}%")
+                  ->orWhere('invoice_number', 'like', "%{$search}%")
+                  ->orWhere('commas_payment_id', 'like', "%{$search}%");
+            });
+        }
+        if ($status = $request->input('status')) { $query->where('status', $status); }
+        if ($plan   = $request->input('plan'))   { $query->where('plan_key', $plan); }
+
+        $tabCounts = [
+            'total'    => CheckoutOrder::count(),
+            'paid'     => CheckoutOrder::where('status', CheckoutOrder::STATUS_PAID)->count(),
+            'pending'  => CheckoutOrder::where('status', CheckoutOrder::STATUS_PENDING)->count(),
+            'mismatch' => CheckoutOrder::where('status', CheckoutOrder::STATUS_MISMATCH)->count(),
+        ];
+
+        return view('admin.orders-index', [
+            'orders'    => $query->orderByDesc('created_at')->paginate(25)->withQueryString(),
+            'filters'   => $request->only(['q', 'status', 'plan']),
+            'tabCounts' => $tabCounts,
         ]);
     }
 
@@ -742,8 +780,11 @@ class DashboardController extends Controller
         $dayStart  = $now->copy()->startOfDay();
         $hourAgo   = $now->copy()->subHour();
 
-        $lastWebhookAt = WebhookEvent::max('received_at');
+        $lastWebhookAt = WebhookEvent::where('provider', 'authorize_net')->max('received_at');
         $lastWebhookAt = $lastWebhookAt ? Carbon::parse($lastWebhookAt) : null;
+
+        $lastCommasWebhookAt = WebhookEvent::where('provider', 'commas')->max('received_at');
+        $lastCommasWebhookAt = $lastCommasWebhookAt ? Carbon::parse($lastCommasWebhookAt) : null;
 
         $byTypeToday = WebhookEvent::whereBetween('received_at', [$dayStart, $now])
             ->select('event_type', DB::raw('COUNT(*) as cnt'))
@@ -766,6 +807,8 @@ class DashboardController extends Controller
         $terminateLog = storage_path('logs/subs-terminate.log');
         $lastSyncAt      = file_exists($syncLog)      ? Carbon::createFromTimestamp(filemtime($syncLog))      : null;
         $lastTerminateAt = file_exists($terminateLog) ? Carbon::createFromTimestamp(filemtime($terminateLog)) : null;
+        $reconcileLog    = storage_path('logs/commas-reconcile.log');
+        $lastReconcileAt = file_exists($reconcileLog) ? Carbon::createFromTimestamp(filemtime($reconcileLog)) : null;
 
         return [
             'last_webhook_at'        => $lastWebhookAt,
@@ -778,6 +821,13 @@ class DashboardController extends Controller
             'enforce_signature'      => (bool) config('services.authorize_net.webhook_enforce_signature', false),
             'last_sync_at'           => $lastSyncAt,
             'last_terminate_at'      => $lastTerminateAt,
+
+            // Commas
+            'payment_provider'       => config('payments.provider'),
+            'last_commas_webhook_at' => $lastCommasWebhookAt,
+            'last_reconcile_at'      => $lastReconcileAt,
+            'orders_mismatch'        => CheckoutOrder::where('status', CheckoutOrder::STATUS_MISMATCH)->count(),
+            'orders_paid_today'      => CheckoutOrder::where('status', CheckoutOrder::STATUS_PAID)->where('paid_at', '>=', $dayStart)->count(),
         ];
     }
 

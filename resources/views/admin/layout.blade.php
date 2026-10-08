@@ -77,6 +77,16 @@
         Payments
       </a>
 
+      <a href="{{ route('admin.orders') }}"
+         class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition {{ $isActive('admin.orders') }}">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+        Checkout Orders
+        @php $ordersNeedingReview = \App\Models\CheckoutOrder::where('status', 'mismatch')->count(); @endphp
+        @if ($ordersNeedingReview > 0)
+          <span class="ml-auto inline-flex px-1.5 rounded-full text-[10px] font-bold bg-red-500 text-white">{{ $ordersNeedingReview }}</span>
+        @endif
+      </a>
+
       <a href="{{ route('admin.referrals') }}"
          class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition {{ $isActive('admin.referrals') }}">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>

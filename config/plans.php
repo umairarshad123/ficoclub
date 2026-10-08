@@ -25,6 +25,8 @@
 |   color/btn        = index.blade.php CSS classes (silver-card / gold-card / platinum-card · btn-light / btn-gold)
 |   badge            = corner ribbon text on the pricing card, or null
 |   is_couples       = legacy flag, false on all current plans
+|   commas_product_id = Commas product hashid (differs sandbox vs production →
+|                      set per environment in .env; create with `php artisan commas:setup-products`)
 |
 | Plan order in this file = card order on the pricing grid.
 |
@@ -40,6 +42,7 @@ return [
         // ───────────────────────────── SILVER ───────────────────────────
         'silver' => [
             'key'             => 'silver',
+            'commas_product_id' => env('COMMAS_PRODUCT_SILVER'),
             'label'           => 'Silver Plan',
             'tag'             => 'SILVER PLAN',
             'tagline'         => 'Single Program Fee',
@@ -79,6 +82,7 @@ return [
         // ───────────────────────────── GOLD ─────────────────────────────
         'gold' => [
             'key'             => 'gold',
+            'commas_product_id' => env('COMMAS_PRODUCT_GOLD'),
             'label'           => 'Gold Plan',
             'tag'             => 'GOLD PLAN',
             'tagline'         => 'Public Records Program',
@@ -119,6 +123,7 @@ return [
         // ───────────────────────────── PLATINUM ─────────────────────────
         'platinum' => [
             'key'             => 'platinum',
+            'commas_product_id' => env('COMMAS_PRODUCT_PLATINUM'),
             'label'           => 'Platinum Plan',
             'tag'             => 'PLATINUM PLAN',
             'tagline'         => 'White-Glove · Done-For-You',
@@ -156,6 +161,7 @@ return [
         // ───────────────────────────── $2,000 ────────────────────────────
         'signature' => [
             'key'             => 'signature',
+            'commas_product_id' => env('COMMAS_PRODUCT_SIGNATURE'),
             'label'           => 'Signature Plan',
             'tag'             => 'SIGNATURE PLAN',
             'tagline'         => 'Complete Credit Overhaul',

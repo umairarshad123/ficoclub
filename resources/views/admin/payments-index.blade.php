@@ -69,7 +69,7 @@
 {{-- ─── Filter bar ─────────────────────────────────────────────────────────── --}}
 <form method="GET" action="{{ route('admin.payments') }}"
       class="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-  <div class="grid grid-cols-2 lg:grid-cols-6 gap-3">
+  <div class="grid grid-cols-2 lg:grid-cols-7 gap-3">
 
     <div class="col-span-2 lg:col-span-2">
       <label class="text-xs font-medium text-gray-600">Search</label>
@@ -100,6 +100,15 @@
       </select>
     </div>
 
+    <div>
+      <label class="text-xs font-medium text-gray-600">Processor</label>
+      <select name="provider" class="mt-1 w-full text-sm px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-gold">
+        <option value="">All</option>
+        <option value="commas"        @selected(($filters['provider'] ?? '') === 'commas')>Commas</option>
+        <option value="authorize_net" @selected(($filters['provider'] ?? '') === 'authorize_net')>Authorize.Net</option>
+      </select>
+    </div>
+
     <div class="grid grid-cols-2 gap-2 col-span-2 lg:col-span-2">
       <div>
         <label class="text-xs font-medium text-gray-600">From</label>
@@ -113,7 +122,7 @@
       </div>
     </div>
 
-    <div class="flex items-end gap-2 col-span-2 lg:col-span-6 justify-end">
+    <div class="flex items-end gap-2 col-span-2 lg:col-span-7 justify-end">
       <a href="{{ route('admin.payments') }}"
          class="px-4 py-2 text-sm text-gray-600 hover:text-ink">Reset</a>
 
@@ -148,6 +157,7 @@
           <th class="text-left py-2.5 px-3 font-medium">Plan</th>
           <th class="text-left py-2.5 px-3 font-medium">Type</th>
           <th class="text-left py-2.5 px-3 font-medium">Status</th>
+          <th class="text-left py-2.5 px-3 font-medium">Via</th>
           <th class="text-right py-2.5 px-3 font-medium">Amount</th>
           <th class="text-left py-2.5 px-3 font-medium">Invoice</th>
           <th class="text-left py-2.5 px-5 font-medium">Txn ID</th>
@@ -184,16 +194,27 @@
               @if ($sub)
                 <div class="font-medium text-ink">{{ $sub->first_name }} {{ $sub->last_name }}</div>
                 <div class="text-xs text-gray-500">{{ $sub->email }}</div>
+              @elseif ($buyer = data_get($pay->raw_payload, 'data.buyer'))
+                {{-- Commas sale that didn't start on the website (funnel / payment link) --}}
+                <div class="font-medium text-ink">{{ $buyer['name'] ?? '—' }}</div>
+                <div class="text-xs text-gray-500">{{ $buyer['email'] ?? '' }}</div>
               @else
                 <div class="text-gray-400 text-xs">(unlinked)</div>
               @endif
             </td>
-            <td class="py-3 px-3 text-gray-700 text-xs">{{ $sub->plan_label ?? '—' }}</td>
+            <td class="py-3 px-3 text-gray-700 text-xs">{{ $sub->plan_label ?? data_get($pay->raw_payload, 'data.item.title') ?? '—' }}</td>
             <td class="py-3 px-3">
               <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-semibold {{ $typeCls }}">{{ ucfirst($pay->type) }}</span>
             </td>
             <td class="py-3 px-3">
               <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-semibold {{ $statusCls }}">{{ ucfirst($pay->status) }}</span>
+            </td>
+            <td class="py-3 px-3">
+              @if ($pay->provider === 'commas')
+                <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-800">Commas</span>
+              @else
+                <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-600">Auth.net</span>
+              @endif
             </td>
             <td class="py-3 px-3 text-right font-semibold {{ $amtCls }}">
               {{ $isNeg ? '-' : '' }}${{ number_format($pay->amount, 2) }}
@@ -202,7 +223,7 @@
             <td class="py-3 px-5 text-xs text-gray-500 font-mono">{{ $pay->transaction_id ?: '—' }}</td>
           </tr>
         @empty
-          <tr><td colspan="8" class="py-10 text-center text-gray-400">No payments match your filters.</td></tr>
+          <tr><td colspan="9" class="py-10 text-center text-gray-400">No payments match your filters.</td></tr>
         @endforelse
       </tbody>
     </table>

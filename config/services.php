@@ -60,6 +60,14 @@ return [
         ],
     ],
 
+    // Commas (formerly FanBasis) — embedded checkout. API docs: https://commasdocs.com
+    'commas' => [
+        'api_key'        => env('COMMAS_API_KEY'),
+        'environment'    => env('COMMAS_ENVIRONMENT', 'sandbox'),   // sandbox | production
+        'creator_slug'   => env('COMMAS_CREATOR_SLUG'),             // handle in fanbasis.com/agency-checkout/<slug>/...
+        'webhook_secret' => env('COMMAS_WEBHOOK_SECRET'),           // whsk_... returned when the webhook is registered
+    ],
+
     'authorize_net' => [
     'api_login_id'      => env('AUTHORIZE_NET_API_LOGIN_ID'),
     'transaction_key'   => env('AUTHORIZE_NET_TRANSACTION_KEY'),

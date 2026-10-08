@@ -22,3 +22,10 @@ Schedule::command('subscriptions:terminate-failed')
     ->dailyAt('02:00')
     ->withoutOverlapping()
     ->appendOutputTo(storage_path('logs/subs-terminate.log'));
+
+// Every 10 min — fulfill paid Commas checkouts whose webhook was lost
+// (Commas delivers webhooks at most once, never retried). No-op until COMMAS_API_KEY is set.
+Schedule::command('commas:reconcile')
+    ->everyTenMinutes()
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/commas-reconcile.log'));

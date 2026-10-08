@@ -37,6 +37,8 @@ class WebhookEvent extends Model
         'source_ip',
         'received_at',
         'payload',
+        'provider',
+        'processed_at',
     ];
 
     protected $casts = [
@@ -44,6 +46,7 @@ class WebhookEvent extends Model
         'signature_valid' => 'boolean',
         'received_at'     => 'datetime',
         'payload'         => 'array',
+        'processed_at'    => 'datetime',
     ];
 
     public function matchedSubscription(): BelongsTo
@@ -82,6 +85,10 @@ class WebhookEvent extends Model
         if (str_starts_with($t, 'net.authorize.customer.subscription.'))         return 'subscription';
         if (str_starts_with($t, 'net.authorize.customer.paymentProfile.'))       return 'profile';
         if (str_starts_with($t, 'net.authorize.customer.'))                      return 'customer';
+        // Commas
+        if (str_starts_with($t, 'payment.') || str_starts_with($t, 'refund.')
+            || str_starts_with($t, 'dispute.') || $t === 'product.purchased')   return 'payment';
+        if (str_starts_with($t, 'subscription.'))                                return 'subscription';
         return 'other';
     }
 
@@ -100,11 +107,17 @@ class WebhookEvent extends Model
             'net.authorize.payment.fraud.approved',
             'net.authorize.customer.subscription.created',
             'net.authorize.customer.created',
-            'net.authorize.customer.paymentProfile.created' => 'success',
+            'net.authorize.customer.paymentProfile.created',
+            'payment.succeeded',
+            'product.purchased',
+            'subscription.created',
+            'subscription.renewed',
+            'subscription.recovered' => 'success',
 
             // Refund / void
             'net.authorize.payment.refund.created',
-            'net.authorize.payment.void.created' => 'refund',
+            'net.authorize.payment.void.created',
+            'refund.created' => 'refund',
 
             // Failed / terminated / deleted
             'net.authorize.payment.fraud.declined',
@@ -112,13 +125,18 @@ class WebhookEvent extends Model
             'net.authorize.customer.subscription.cancelled',
             'net.authorize.customer.subscription.terminated',
             'net.authorize.customer.deleted',
-            'net.authorize.customer.paymentProfile.deleted' => 'failed',
+            'net.authorize.customer.paymentProfile.deleted',
+            'payment.failed',
+            'subscription.canceled',
+            'dispute.created' => 'failed',
 
             // Pending / warning
             'net.authorize.payment.fraud.held',
             'net.authorize.customer.subscription.suspended',
             'net.authorize.customer.subscription.expiring',
-            'net.authorize.customer.subscription.expired'   => 'warning',
+            'net.authorize.customer.subscription.expired',
+            'subscription.past_due',
+            'dispute.updated' => 'warning',
 
             // Informational / neutral
             default => 'info',
@@ -179,10 +197,13 @@ class WebhookEvent extends Model
         if ($name === '') $name = 'unknown customer';
 
         $amount = data_get($payload, 'payload.authAmount')
-                ?? data_get($payload, 'payload.amount');
+                ?? data_get($payload, 'payload.amount')
+                ?? data_get($payload, 'data.amount');          // Commas envelope
         $amountStr = $amount !== null ? '$' . number_format((float) $amount, 2) : '';
 
         $invoice = data_get($payload, 'payload.invoiceNumber');
+        $item    = data_get($payload, 'data.item.title');
+        $itemStr = $item ? " — {$item}" : '';
         $invoiceStr = $invoice ? " (invoice {$invoice})" : '';
 
         return match ($eventType) {
@@ -234,6 +255,30 @@ class WebhookEvent extends Model
                 => 'Payment method updated' . ($firstName ? " for {$name}" : ''),
             'net.authorize.customer.paymentProfile.deleted'
                 => 'Payment method removed' . ($firstName ? " for {$name}" : ''),
+
+            // ── Commas ──
+            'payment.succeeded'
+                => trim("Payment of {$amountStr} received from {$name}{$itemStr}"),
+            'payment.failed'
+                => "Payment failed for {$name} (" . data_get($payload, 'data.failure_reason', 'declined') . ')',
+            'payment.expired'
+                => "Checkout timed out before payment for {$name}",
+            'payment.canceled'
+                => "Payment canceled for {$name}",
+            'product.purchased'
+                => trim("Purchase completed by {$name}{$itemStr}"),
+            'refund.created'
+                => trim("Refund of {$amountStr} issued to {$name}{$itemStr}"),
+            'dispute.created'
+                => trim("Chargeback opened by {$name} — {$amountStr} (" . data_get($payload, 'data.reason', 'no reason') . ')'),
+            'dispute.updated'
+                => "Chargeback for {$name} is now " . data_get($payload, 'data.status', 'updated'),
+            'subscription.created'   => "Subscription started for {$name}{$itemStr}",
+            'subscription.renewed'   => "Subscription renewed for {$name}{$itemStr}",
+            'subscription.completed' => "Subscription completed for {$name}{$itemStr}",
+            'subscription.canceled'  => "Subscription canceled for {$name}{$itemStr}",
+            'subscription.past_due'  => "Subscription past due for {$name}{$itemStr}",
+            'subscription.recovered' => "Subscription recovered for {$name}{$itemStr}",
 
             default => $eventType,
         };

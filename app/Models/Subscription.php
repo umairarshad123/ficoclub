@@ -34,6 +34,7 @@ class Subscription extends Model
         'first_failed_at',
         'grace_period_ends_at',
         'terminated_at',
+        'provider',
     ];
 
     protected $casts = [

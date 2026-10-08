@@ -27,6 +27,11 @@ class AcceptJsPaymentController extends Controller
 
     public function processPayment(Request $request)
     {
+        // Never take raw card data once Commas is live.
+        if (config('payments.provider') === 'commas') {
+            return response()->json(['success' => false, 'message' => 'This checkout is no longer available.'], 410);
+        }
+
         Log::info('Payment request started', [
             'ip'           => $request->ip(),
             'user_agent'   => $request->userAgent(),
