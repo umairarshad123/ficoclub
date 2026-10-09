@@ -26,30 +26,35 @@ class OnboardingFormController extends Controller
             $cacheData = Cache::get('checkout_customer_' . $invoiceNumber);
         }
 
-        // ── 3. Server-side access control ──
-        if (!$paymentSuccess && !$cacheData) {
-            Log::warning('Onboarding form access denied — no valid payment found', [
-                'ip'         => $request->ip(),
-                'session_id' => session()->getId(),
-            ]);
-
-            return redirect()->route('accept.checkout')
-                ->with('error', 'Please complete your payment before accessing the enrollment form.');
-        }
+        // ── 3. Open to everyone ──
+        //    Clients who paid outside the website (Commas link, invoice, phone) are sent
+        //    here directly, so there's no payment gate. Without a checkout session the
+        //    plan comes from ?plan=<key> (e.g. /onboardingform?plan=gold), else "Direct Enrollment".
+        $directEnrollment = !$paymentSuccess && !$cacheData;
 
         // ── 4. Resolve plan key & derive display values (server-side authoritative) ──
         $planKey = $cacheData['plan_key'] ?? null;
 
-        if (!$planKey || !isset($planCatalog[$planKey])) {
+        if ($directEnrollment) {
+            $requested = strtolower((string) $request->query('plan', ''));
+            $planKey   = (isset($planCatalog[$requested]) && empty($planCatalog[$requested]['hidden'])) ? $requested : null;
+        } elseif (!$planKey || !isset($planCatalog[$planKey])) {
             $planKey = $defaultPlan;
         }
 
-        $planLabel = $planCatalog[$planKey]['label'];
-        $amount    = $planCatalog[$planKey]['amount'];
+        $planLabel = $planKey ? $planCatalog[$planKey]['label']  : 'Direct Enrollment';
+        $amount    = $planKey ? $planCatalog[$planKey]['amount'] : '';
+
+        if ($directEnrollment) {
+            Log::info('Onboarding form opened without a checkout session (direct enrollment)', [
+                'ip'   => $request->ip(),
+                'plan' => $planKey,
+            ]);
+        }
 
         // ── 5. Couples partner context ──
         //    partner = husband | wife (only meaningful for the couples plan)
-        $isCouples = (bool) ($planCatalog[$planKey]['is_couples'] ?? false)
+        $isCouples = (bool) ($planKey ? ($planCatalog[$planKey]['is_couples'] ?? false) : false)
                      || session('couples_flow') === true;
         $partner   = strtolower((string) $request->query('partner', ''));
         if (!in_array($partner, ['husband', 'wife'], true)) {
@@ -63,7 +68,7 @@ class OnboardingFormController extends Controller
 
         // Distinguish each partner inside the external CRM.
         if ($isCouples && $partner !== '') {
-            $planLabel = $planCatalog[$planKey]['label'] . ' — ' . ucfirst($partner);
+            $planLabel = $planLabel . ' — ' . ucfirst($partner);
         }
 
         // ── 6. Customer prefill ──

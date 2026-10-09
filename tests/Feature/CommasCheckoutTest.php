@@ -360,6 +360,16 @@ class CommasCheckoutTest extends TestCase
             ->assertSee('Jane');
     }
 
+    public function test_onboarding_form_is_open_to_direct_payers(): void
+    {
+        $this->get('/onboardingform')->assertOk()->assertSee('Direct Enrollment')->assertSee('Paid directly');
+
+        $this->get('/onboardingform?plan=gold')->assertOk()->assertSee('Gold Plan')->assertSee('$897.00');
+
+        // the hidden test plan can't be picked this way
+        $this->get('/onboardingform?plan=test')->assertOk()->assertSee('Direct Enrollment')->assertDontSee('Test Plan');
+    }
+
     // ── reconcile path ──────────────────────────────────────────────────────
 
     public function test_reconcile_fulfills_a_paid_order_whose_webhook_was_lost(): void

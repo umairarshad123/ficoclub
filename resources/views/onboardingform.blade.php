@@ -434,7 +434,7 @@
                   </svg>
                   <input type="text"
                          class="plan-prefilled"
-                         value="${{ $amount }}"
+                         value="{{ $amount !== '' ? '$' . $amount : 'Paid directly' }}"
                          readonly
                          tabindex="-1"
                          style="padding-right:110px;">
