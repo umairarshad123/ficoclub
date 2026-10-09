@@ -25,21 +25,22 @@ class SiteMaintenance
 
     public function handle(Request $request, Closure $next): Response
     {
+        $secret = (string) config('maintenance.secret', '');
+
+        // ?preview=<secret> → set the team cookie and reload the same page without that param,
+        // so one link works: /accept-checkout?plan=test&preview=<secret>. Handled even when
+        // maintenance is off — the cookie also unlocks the hidden $1 test plan.
+        if ($secret !== '' && hash_equals($secret, (string) $request->query('preview', ''))) {
+            return redirect($request->fullUrlWithoutQuery('preview'))
+                ->withCookie(cookie(self::PREVIEW_COOKIE, hash_hmac('sha256', 'site-preview', $secret), 60 * 24 * 7));
+        }
+
         if (! config('maintenance.enabled')) {
             return $next($request);
         }
 
         if ($request->is(...config('maintenance.except', []))) {
             return $next($request);
-        }
-
-        $secret = (string) config('maintenance.secret', '');
-
-        // ?preview=<secret> → set the bypass cookie and reload the same page without that param,
-        // so one link works: /accept-checkout?plan=test&preview=<secret>
-        if ($secret !== '' && hash_equals($secret, (string) $request->query('preview', ''))) {
-            return redirect($request->fullUrlWithoutQuery('preview'))
-                ->withCookie(cookie(self::PREVIEW_COOKIE, hash_hmac('sha256', 'site-preview', $secret), 60 * 24 * 7));
         }
 
         if (self::hasPreviewAccess($request)) {

@@ -432,6 +432,24 @@ class CommasCheckoutTest extends TestCase
         $this->assertSame('1.00', CheckoutOrder::firstOrFail()->amount);
     }
 
+    public function test_preview_link_unlocks_test_plan_even_with_maintenance_off(): void
+    {
+        config([
+            'maintenance.enabled'                => false,
+            'maintenance.secret'                 => 'team-secret',
+            'plans.plans.test.commas_product_id' => 'TeSt1',
+        ]);
+
+        $res = $this->get('/accept-checkout?plan=test&preview=team-secret');
+        $res->assertRedirect(url('/accept-checkout?plan=test'));
+        $cookie = collect($res->headers->getCookies())->firstWhere(fn ($c) => $c->getName() === 'site_preview');
+        $this->assertNotNull($cookie);
+
+        $this->withCredentials()->withUnencryptedCookie('site_preview', $cookie->getValue())
+            ->postJson('/checkout/order', $this->orderPayload(['selected_plan' => 'test']))
+            ->assertOk();
+    }
+
     public function test_hidden_test_plan_is_not_on_the_pricing_grid(): void
     {
         $this->get('/')->assertOk()
