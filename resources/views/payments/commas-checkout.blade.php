@@ -1142,8 +1142,9 @@
         }
         .paying-as a { color: var(--green-dark); font-weight: 800; text-decoration: none; white-space: nowrap; }
         #checkout-container { width: 100%; }
-        #checkout-container.mounted { height: 640px; }
-        #checkout-container iframe { width: 100% !important; height: 100% !important; min-height: 640px; border: 0; border-radius: 12px; display: block; }
+        /* Sized to the card-only form (email + Card/Google Pay + card fields + Pay ≈ 470px on desktop) */
+        #checkout-container.mounted { height: 500px; }
+        #checkout-container iframe { width: 100% !important; height: 100% !important; min-height: 500px; border: 0; border-radius: 12px; display: block; }
         @media (max-width: 640px) {
             #checkout-container.mounted { height: 700px; }
             #checkout-container iframe { min-height: 700px; }
