@@ -297,13 +297,16 @@ class CommasCheckoutController extends Controller
         Cache::put('checkout_customer_' . $order->invoice_number, $order->customerPayload(), now()->addMinutes(120));
     }
 
-    /** US numbers → +1XXXXXXXXXX for the SDK prefill; anything else passes through as +digits. */
-    private function e164(string $phone): string
+    /** US numbers → +1XXXXXXXXXX for the SDK prefill; anything we can't interpret → null (not prefilled). */
+    private function e164(string $phone): ?string
     {
         $digits = preg_replace('/\D/', '', $phone);
         if (strlen($digits) === 10) {
             return '+1' . $digits;
         }
-        return '+' . $digits;
+        if (strlen($digits) === 11 && $digits[0] === '1') {
+            return '+' . $digits;
+        }
+        return null;
     }
 }

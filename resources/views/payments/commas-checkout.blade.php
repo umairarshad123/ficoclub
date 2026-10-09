@@ -1143,8 +1143,13 @@
             font-size: 13px; color: var(--text-mid);
         }
         .paying-as a { color: var(--green-dark); font-weight: 800; text-decoration: none; white-space: nowrap; }
-        #checkout-container { min-height: 0; }
-        #checkout-container iframe { width: 100% !important; border: 0; border-radius: 12px; }
+        #checkout-container { width: 100%; }
+        #checkout-container.mounted { height: 640px; }
+        #checkout-container iframe { width: 100% !important; height: 100% !important; min-height: 640px; border: 0; border-radius: 12px; display: block; }
+        @media (max-width: 640px) {
+            #checkout-container.mounted { height: 700px; }
+            #checkout-container iframe { min-height: 700px; }
+        }
         .checkout-loading { display: none; align-items: center; gap: 10px; padding: 18px; color: var(--text-mid); font-size: 14px; }
         .pay-hint { display: none; margin-top: 4px; font-size: 13px; color: var(--text-mid); text-align: center; line-height: 1.5; }
         .inp:disabled, .sel:disabled { opacity: .7; cursor: not-allowed; }
@@ -1559,29 +1564,57 @@ var DEFAULT_PLAN = {!! json_encode($defaultPlan) !!};
         document.getElementById('payingAs').style.display        = 'flex';
         document.getElementById('checkoutLoading').style.display = 'flex';
 
+        // Card-only form: name, phone and address were already entered above, so the
+        // iframe shows just the (locked) email + payment fields. Name is prefilled,
+        // address is injected after form:ready (only allowed while the field is hidden).
         var config = Object.assign({}, data.checkout, {
-            collectPhone: true,
+            collectPhone: false,
+            containerOptions: { width: '100%', height: '100%' },
             redirectSettings: { success_redirect_url: data.success_url, always_redirect: true },
             theme: {
                 theme: 'light',
                 show_product_info: false,          // the sidebar already shows the plan
                 product_layout: 'above',
                 show_coupon_row: false,
+                show_headings: false,
                 accent_color: '#16a34a',
+                background_color: '#ffffff',
+                surface_color: '#ffffff',
+                input_background_color: '#f8fafc',
                 border_color: '#e2e8f0',
                 heading_color: '#0d1b3e',
                 label_color: '#374151',
-                billing_form_placement: 'above',
-                prefill: data.prefill,
-                fields: { email: { disable: true } }   // must match the order — used to verify the payment
+                secondary_color: '#64748b',
+                prefill: {
+                    email: data.prefill.email,
+                    first_name: data.prefill.first_name,
+                    last_name: data.prefill.last_name
+                },
+                fields: {
+                    email:      { disable: true },   // must match the order — used to verify the payment
+                    first_name: { hide: true },
+                    last_name:  { hide: true },
+                    phone:      { hide: true },
+                    address:    { hide: true }
+                }
             }
         });
 
+        var container = document.getElementById('checkout-container');
+        container.classList.add('mounted');
+
         checkout = PaymentCheckout.create(config);
-        checkout.attachToElement(document.getElementById('checkout-container'));
+        checkout.attachToElement(container);
 
         // Handlers must be registered before init().
-        checkout.on('form:ready',      hideLoading);
+        checkout.on('form:ready', function () {
+            hideLoading();
+            if (checkout && checkout.setAddress) {
+                Promise.resolve(checkout.setAddress(data.prefill.address)).catch(function (err) {
+                    console.warn('[checkout] address prefill skipped', err && err.code);
+                });
+            }
+        });
         checkout.on('checkout:loaded', hideLoading);
         checkout.on('checkout:success', function (d) { finish(d && d.transactionId); });
         checkout.on('form:submission_error', function (d) {
@@ -1631,6 +1664,7 @@ var DEFAULT_PLAN = {!! json_encode($defaultPlan) !!};
         checkout = null;
         currentOrder = null;
         document.getElementById('checkout-container').innerHTML  = '';
+        document.getElementById('checkout-container').classList.remove('mounted');
         document.getElementById('checkoutLoading').style.display = 'none';
         document.getElementById('payingAs').style.display        = 'none';
         document.getElementById('paymentLocked').style.display   = 'flex';
