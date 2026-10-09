@@ -353,10 +353,8 @@
 
         /* ════ LAYOUT ════ */
         .layout {
-            display: grid;
-            grid-template-columns: minmax(0,1fr) 368px;
-            gap: 28px;
-            align-items: start;
+            max-width: 860px;
+            margin: 0 auto;
         }
 
         /* ═══════════════════════════════════════════════
@@ -1153,6 +1151,59 @@
         .checkout-loading { display: none; align-items: center; gap: 10px; padding: 18px; color: var(--text-mid); font-size: 14px; }
         .pay-hint { display: none; margin-top: 4px; font-size: 13px; color: var(--text-mid); text-align: center; line-height: 1.5; }
         .inp:disabled, .sel:disabled { opacity: .7; cursor: not-allowed; }
+
+        /* ── One-column flow: landscape plan summary → details → agreements → button → card form ── */
+        .plan-summary {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 280px;
+            margin-bottom: 32px;
+        }
+        .plan-summary .ps-info { padding: 26px 28px 20px; }
+        .plan-summary .plan-desc { margin-bottom: 14px; }
+        .plan-summary .features {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            column-gap: 22px;
+            margin-bottom: 0;
+        }
+        .plan-summary .features li { padding: 7px 0; font-size: 12.5px; }
+        .plan-summary .ps-price {
+            border-top: none;
+            border-bottom: none;
+            border-left: 1.5px solid var(--green-border);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .cta-inline { margin: 4px 0 30px; }
+        .cta-inline .pay-btn { height: 60px; font-size: 17px; }
+        #paymentStep .pay-hint { margin: 0 0 12px; }
+        .checkout-footer { margin-top: 22px; }
+        .checkout-footer .seals { padding: 0 0 10px; }
+        .checkout-footer .footer-note { padding: 0 8px 10px; }
+        .checkout-footer .footer-note.croa { font-size: 10.5px; opacity: .78; }
+
+        .features-more { display: none; }
+        @media (max-width: 640px) {
+            /* Stacked fields: use one consistent 16px rhythm instead of grid gap + margin */
+            .fg2, .fg3 { gap: 0; }
+            .fg2 > .field, .fg3 > .field { margin-bottom: 16px; }
+            .card > .fg3:last-child > .field:last-child { margin-bottom: 0; }
+        }
+        @media (max-width: 760px) {
+            /* Long feature lists push the form below the fold on phones — show 5, expand on tap */
+            .plan-summary .features:not(.expanded) li:nth-child(n+6) { display: none; }
+            .features-more {
+                display: inline-block; margin-top: 8px; padding: 0; border: 0; background: none;
+                color: var(--green-dark); font: inherit; font-size: 13px; font-weight: 800; cursor: pointer;
+            }
+            .plan-summary { grid-template-columns: 1fr; }
+            .plan-summary .ps-info { padding: 20px 18px 14px; }
+            .plan-summary .features { grid-template-columns: 1fr; }
+            .plan-summary .ps-price { border-left: none; border-top: 1.5px solid var(--green-border); padding: 16px 18px; }
+            .plan-summary .price-total-amount { font-size: 42px; }
+            .cta-inline .pay-btn { height: 56px; font-size: 16px; }
+        }
     </style>
 </head>
 <body>
@@ -1199,6 +1250,34 @@ Fallback = config('plans.default') if nothing/invalid passed
     </div>
 
     <div class="layout">
+
+        {{-- ════ PLAN SUMMARY — landscape, full width ════ --}}
+        <div class="order-card plan-summary" id="orderCard">
+            <div class="ps-info">
+                <div class="plan-tag gold-tag" id="planTag">✦ YOUR SELECTED PLAN</div>
+                <div class="plan-name" id="planName">&nbsp;</div>
+                <div class="plan-tagline" id="planTagline">&nbsp;</div>
+                <div class="plan-desc" id="planDesc">&nbsp;</div>
+                <ul class="features" id="planFeatures">{{-- Filled by JS --}}</ul>
+                <button type="button" class="features-more" id="featuresMore">Show all features ▾</button>
+            </div>
+
+            <div class="price-block ps-price">
+                <div class="price-row">
+                    <span id="priceRowLabel">&nbsp;</span>
+                    <span class="amount-val" id="priceRowAmount">&nbsp;</span>
+                </div>
+                <div class="price-row">
+                    <span>Setup fee</span>
+                    <span class="free">FREE</span>
+                </div>
+                <div class="price-total-row">
+                    <div class="price-total-label">Program Total</div>
+                    <div class="price-total-amount"><sup>$</sup><span id="priceBig">&nbsp;</span></div>
+                </div>
+                <div class="price-billing-note" id="priceBillingNote">&nbsp;</div>
+            </div>
+        </div>
 
         {{-- ════ LEFT — FORM ════ --}}
         <div class="left-col">
@@ -1309,6 +1388,21 @@ Fallback = config('plans.default') if nothing/invalid passed
                     </div>
                 </div>
 
+                {{-- Continue → opens the secure card form below --}}
+                <div class="cta-inline">
+                    <button type="button" class="pay-btn" id="payNowButton">
+                        <span class="pay-btn-ring"></span>
+                        🔒&nbsp; Continue to Secure Payment
+                    </button>
+
+                    <div class="processing" id="processingText">
+                        <div class="spin"></div>
+                        <span id="processingLabel">Preparing secure checkout...</span>
+                    </div>
+
+                    <div class="success-msg" id="successBox"></div>
+                </div>
+
                 {{-- Payment — Commas embedded checkout mounts here after "Continue" --}}
                 <div class="section-divider">
                     <span class="section-label">💳 Secure Payment</span>
@@ -1324,7 +1418,7 @@ Fallback = config('plans.default') if nothing/invalid passed
                 <div class="card" id="paymentStep">
                     <div class="pay-locked" id="paymentLocked">
                         <div class="pay-locked-icon">🔒</div>
-                        <div>Fill in your details and accept the agreements above, then click <strong>Continue to Secure Payment</strong> to enter your card.</div>
+                        <div>Fill in your details and accept the agreements above, then tap <strong>Continue to Secure Payment</strong> above to enter your card.</div>
                     </div>
 
                     <div class="paying-as" id="payingAs">
@@ -1332,6 +1426,7 @@ Fallback = config('plans.default') if nothing/invalid passed
                         <a href="#" id="editDetails">✎ Edit details</a>
                     </div>
 
+                    <div class="pay-hint" id="payHint">Enter your card below to complete your enrollment.</div>
                     <div class="checkout-loading" id="checkoutLoading"><div class="spin"></div> Loading secure payment form…</div>
                     <div id="checkout-container"></div>
                 </div>
@@ -1342,81 +1437,31 @@ Fallback = config('plans.default') if nothing/invalid passed
                     <div class="sec-badge"><span class="badge-dot"></span><span class="sec-badge-icon">🏦</span> Bank-Grade Security</div>
                 </div>
 
+                <div class="checkout-footer">
+                    <div class="seals">
+                        <span>🔒 SSL Secured</span><span class="seal-sep">|</span>
+                        <span>🛡️ PCI Compliant</span><span class="seal-sep">|</span>
+                        <span>✓ Secure Card Processing</span>
+                    </div>
+                    <div class="footer-note">
+                        By enrolling you agree to our Terms of Service.
+                        A confirmation email is sent immediately after enrollment.
+                    </div>
+                    <div class="footer-note croa">
+                        850 FICO Club is a credit repair organization as defined under the Credit Repair Organizations Act (CROA), 15 U.S.C. § 1679 <em>et seq.</em>
+                        In full compliance with CROA, no fees are collected until after the contracted services have been fully performed.
+                    </div>
+                </div>
+
                 {{-- Plan key sent to backend --}}
                 <input type="hidden" id="selected_plan"  name="selected_plan" value="">
                 <input type="hidden" id="referral_code" name="referral_code" value="{{ session('referral_code', '') }}">
             </form>
         </div>
 
-        {{-- ════ SIDEBAR ════ --}}
-        <div class="sidebar">
-            <div class="order-card" id="orderCard">
-
-
-
-                <div class="plan-top">
-                    <div class="plan-tag gold-tag" id="planTag">✦ YOUR SELECTED PLAN</div>
-            <div class="plan-name"    id="planName">&nbsp;</div>
-        <div class="plan-tagline" id="planTagline">&nbsp;</div>
-        <div class="plan-desc" id="planDesc">&nbsp;</div>
-
-                    <ul class="features" id="planFeatures">
-                        {{-- Filled by JS --}}
-                    </ul>
-                </div>
-
-                <div class="price-block">
-                    <div class="price-row">
-                <span id="priceRowLabel">&nbsp;</span>
-                <span class="amount-val" id="priceRowAmount">&nbsp;</span>
-                    </div>
-                    <div class="price-row">
-                        <span>Setup fee</span>
-                        <span class="free">FREE</span>
-                    </div>
-                    <div class="price-total-row">
-                        <div class="price-total-label">Program Total</div>
-                        <div class="price-total-amount"><sup>$</sup><span id="priceBig">&nbsp;</span></div>
-                    </div>
-                    <div class="price-billing-note" id="priceBillingNote">&nbsp;</div>
-                </div>
-
-                <div class="cta-wrap">
-                    <button type="button" class="pay-btn" id="payNowButton">
-                        <span class="pay-btn-ring"></span>
-                        🔒&nbsp; Continue to Secure Payment
-                    </button>
-
-                    <div class="processing" id="processingText">
-                        <div class="spin"></div>
-                        <span id="processingLabel">Preparing secure checkout...</span>
-                    </div>
-
-                    <div class="pay-hint" id="payHint">Enter your card in the secure form to complete your enrollment.</div>
-
-                    <div class="success-msg" id="successBox"></div>
-                </div>
-
-                <div class="seals">
-                    <span>🔒 SSL Secured</span><span class="seal-sep">|</span>
-                    <span>🛡️ PCI Compliant</span><span class="seal-sep">|</span>
-                    <span>✓ Secure Card Processing</span>
-                </div>
-
-                <div class="footer-note">
-                    By enrolling you agree to our Terms of Service.<br>
-                    A confirmation email is sent immediately after enrollment.
-                </div>
-
-                <div class="footer-note" style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.06);font-size:11px;line-height:1.65;opacity:.78">
-                    850 FICO Club is a credit repair organization as defined under the Credit Repair Organizations Act (CROA), 15 U.S.C. § 1679 <em>et seq.</em>
-                    In full compliance with CROA, no fees are collected until after the contracted services have been fully performed.
-                </div>
-            </div>
-        </div>
-
     </div>
 </div>
+
 <script>
 // ════════════════════════════════════════════════
 // PLAN DEFINITIONS
@@ -1502,6 +1547,17 @@ var DEFAULT_PLAN = {!! json_encode($defaultPlan) !!};
         li.innerHTML = '<span class="chk">✓</span> ' + f;
         ul.appendChild(li);
     });
+
+    var moreBtn = document.getElementById('featuresMore');
+    if (plan.features.length <= 5) {
+        moreBtn.remove();
+    } else {
+        moreBtn.textContent = 'Show all ' + plan.features.length + ' features ▾';
+        moreBtn.addEventListener('click', function () {
+            ul.classList.add('expanded');
+            moreBtn.remove();
+        });
+    }
 
     // ════════════════════════════════════════════════
     // COMMAS EMBEDDED CHECKOUT
