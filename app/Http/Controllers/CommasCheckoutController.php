@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Middleware\SiteMaintenance;
 use App\Models\CheckoutOrder;
 use App\Services\CommasService;
 use App\Services\EnrollmentFulfillment;
@@ -64,6 +65,13 @@ class CommasCheckoutController extends Controller
         ]);
 
         $plan = $plans[$validated['selected_plan']];
+
+        if (! empty($plan['hidden']) && ! SiteMaintenance::hasPreviewAccess($request)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This plan is not available.',
+            ], 422);
+        }
 
         if (! $this->commas->isConfigured() || empty($plan['commas_product_id']) || ! config('services.commas.creator_slug')) {
             Log::error('[Commas] Checkout not configured', [

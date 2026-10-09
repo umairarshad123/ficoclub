@@ -102,10 +102,15 @@ class CommasSetupCommand extends Command
         $products = collect($commas->listProducts())->keyBy('id');
         $this->info('✓ API key works (' . $products->count() . ' products visible)');
 
+        // payment_link = https://www.fanbasis.com/agency-checkout/<slug>/<product>
+        $detectedSlug = $products->map(fn ($p) => preg_match('#/agency-checkout/([^/]+)/#', (string) ($p['payment_link'] ?? ''), $m) ? $m[1] : null)
+            ->filter()->first();
+
         if (config('services.commas.creator_slug')) {
-            $this->info('✓ COMMAS_CREATOR_SLUG = ' . config('services.commas.creator_slug'));
+            $this->info('✓ COMMAS_CREATOR_SLUG = ' . config('services.commas.creator_slug')
+                . ($detectedSlug && $detectedSlug !== config('services.commas.creator_slug') ? "  (⚠ payment links use '{$detectedSlug}')" : ''));
         } else {
-            $this->error('✗ COMMAS_CREATOR_SLUG is not set');
+            $this->error('✗ COMMAS_CREATOR_SLUG is not set' . ($detectedSlug ? " — your payment links use: {$detectedSlug}" : ''));
             $ok = false;
         }
 

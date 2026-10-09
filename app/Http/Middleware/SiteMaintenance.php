@@ -14,6 +14,15 @@ class SiteMaintenance
 {
     public const PREVIEW_COOKIE = 'site_preview';
 
+    /** True when this browser holds a valid ?preview=<secret> cookie (team member). */
+    public static function hasPreviewAccess(Request $request): bool
+    {
+        $secret = (string) config('maintenance.secret', '');
+
+        return $secret !== ''
+            && hash_equals(hash_hmac('sha256', 'site-preview', $secret), (string) $request->cookies->get(self::PREVIEW_COOKIE, ''));
+    }
+
     public function handle(Request $request, Closure $next): Response
     {
         if (! config('maintenance.enabled')) {
@@ -26,18 +35,14 @@ class SiteMaintenance
 
         $secret = (string) config('maintenance.secret', '');
 
-        if ($secret !== '') {
-            $token = hash_hmac('sha256', 'site-preview', $secret);
+        // ?preview=<secret> → set the bypass cookie and reload without the query string
+        if ($secret !== '' && hash_equals($secret, (string) $request->query('preview', ''))) {
+            return redirect($request->url())
+                ->withCookie(cookie(self::PREVIEW_COOKIE, hash_hmac('sha256', 'site-preview', $secret), 60 * 24 * 7));
+        }
 
-            // ?preview=<secret> → set the bypass cookie and reload without the query string
-            if (hash_equals($secret, (string) $request->query('preview', ''))) {
-                return redirect($request->url())
-                    ->withCookie(cookie(self::PREVIEW_COOKIE, $token, 60 * 24 * 7));
-            }
-
-            if (hash_equals($token, (string) $request->cookies->get(self::PREVIEW_COOKIE, ''))) {
-                return $next($request);
-            }
+        if (self::hasPreviewAccess($request)) {
+            return $next($request);
         }
 
         if ($request->expectsJson()) {

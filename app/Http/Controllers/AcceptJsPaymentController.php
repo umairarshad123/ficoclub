@@ -72,7 +72,7 @@ class AcceptJsPaymentController extends Controller
             'expMonth'         => 'required|string|size:2',
             'expYear'          => 'required|string|size:4',
             'cardCode'         => 'required|string|min:3|max:4',
-            'selected_plan'    => 'nullable|string|in:' . implode(',', array_keys(config('plans.plans'))),
+            'selected_plan'    => 'nullable|string|in:' . implode(',', array_keys(array_filter(config('plans.plans'), fn ($p) => empty($p['hidden'])))),
             'agree_terms'      => 'required|boolean',
             'agree_privacy'    => 'required|boolean',
             'marketing_opt_in' => 'nullable|boolean',

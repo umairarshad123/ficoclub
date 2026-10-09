@@ -412,6 +412,33 @@ class CommasCheckoutTest extends TestCase
             ->assertSee('ORD-AAAA-BBBB-CCCC');
     }
 
+    // ── hidden $1 test plan ─────────────────────────────────────────────────
+
+    public function test_hidden_test_plan_needs_the_preview_cookie(): void
+    {
+        config([
+            'maintenance.secret'                 => 'team-secret',
+            'plans.plans.test.commas_product_id' => 'TeSt1',
+        ]);
+
+        $this->postJson('/checkout/order', $this->orderPayload(['selected_plan' => 'test']))
+            ->assertStatus(422)->assertJsonPath('message', 'This plan is not available.');
+        $this->assertSame(0, CheckoutOrder::count());
+
+        $this->withCredentials()->withUnencryptedCookie('site_preview', hash_hmac('sha256', 'site-preview', 'team-secret'))
+            ->postJson('/checkout/order', $this->orderPayload(['selected_plan' => 'test']))
+            ->assertOk()->assertJsonPath('checkout.productId', 'TeSt1');
+
+        $this->assertSame('1.00', CheckoutOrder::firstOrFail()->amount);
+    }
+
+    public function test_hidden_test_plan_is_not_on_the_pricing_grid(): void
+    {
+        $this->get('/')->assertOk()
+            ->assertSee('/accept-checkout?plan=gold', false)
+            ->assertDontSee('/accept-checkout?plan=test', false);
+    }
+
     // ── legacy guard ────────────────────────────────────────────────────────
 
     public function test_legacy_raw_card_endpoint_is_disabled_when_commas_is_active(): void

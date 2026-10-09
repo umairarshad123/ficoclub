@@ -1762,6 +1762,7 @@ color:#fff !important;
 {{-- Cards driven by config/plans.php — single source of truth --}}
 @php $ps_i = 0; @endphp
 @foreach (config('plans.plans') as $ps_key => $ps_plan)
+@continue(!empty($ps_plan['hidden']))
 <div class="pc {{ $ps_plan['color'] }}{{ $ps_i > 0 ? ' d'.$ps_i : '' }}" id="ps-c{{ $ps_i }}">
   <div class="glow" id="ps-g{{ $ps_i }}"></div>
   <div class="orb orb1"></div><div class="orb orb2"></div>

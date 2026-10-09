@@ -25,6 +25,8 @@
 |   color/btn        = index.blade.php CSS classes (silver-card / gold-card / platinum-card · btn-light / btn-gold)
 |   badge            = corner ribbon text on the pricing card, or null
 |   is_couples       = legacy flag, false on all current plans
+|   hidden           = never shown on the pricing grid; only buyable by someone
+|                      holding the maintenance preview cookie (live $1 testing)
 |   commas_product_id = Commas product hashid (differs sandbox vs production →
 |                      set per environment in .env; create with `php artisan commas:setup-products`)
 |
@@ -191,6 +193,37 @@ return [
                 '24/7 client portal access + lifetime credit guidance',
             ],
             'best_for'        => 'Clients who want the most complete, fully done-for-you program with lifetime guidance.',
+        ],
+
+        // ───────────────────────────── $1 TEST (hidden) ──────────────────
+        // Live end-to-end testing of the Commas checkout. Not on the pricing
+        // grid; /accept-checkout?plan=test only works with the maintenance
+        // preview cookie (see App\Http\Middleware\SiteMaintenance). Remove after launch.
+        'test' => [
+            'key'             => 'test',
+            'commas_product_id' => env('COMMAS_PRODUCT_TEST'),
+            'hidden'          => true,
+            'label'           => 'Test Plan',
+            'tag'             => 'INTERNAL TEST',
+            'tagline'         => 'Internal checkout test',
+            'desc'            => 'Internal $1 plan for testing the live checkout end to end. Not visible to customers.',
+            'amount'          => '1.00',
+            'recurring'       => null,
+            'compare_at'      => null,
+            'save'            => null,
+            'price_big'       => '1',
+            'period'          => 'internal test',
+            'billing_note'    => 'internal test — refund after verifying',
+            'monitoring_note' => '',
+            'sub_note'        => 'Internal test',
+            'color'           => 'silver-card',
+            'btn'             => 'btn-light',
+            'tag_class'       => 'silver-tag',
+            'badge'           => null,
+            'is_couples'      => false,
+            'cta'             => 'Test Checkout',
+            'features'        => ['Live payment test', 'GHL webhook test', 'Onboarding handoff test'],
+            'best_for'        => 'Internal testing only.',
         ],
 
     ],
