@@ -212,6 +212,43 @@ class CommasCheckoutTest extends TestCase
         $this->get('/checkout/complete/' . $order->uuid)->assertOk()->assertSee('We received your payment');
     }
 
+    public function test_commas_surcharge_on_top_of_price_is_accepted(): void
+    {
+        $order = $this->createOrder();
+
+        // Commas adds ~4% processing surcharge: $897 → $932.88
+        $this->webhook($this->paymentSucceeded($order, ['amount' => 932.88]))->assertOk();
+
+        $this->assertSame('paid', $order->refresh()->status);
+        $this->assertSame('932.88', $order->paid_amount);
+        $this->assertSame(1, $this->ghlCalls());
+    }
+
+    public function test_completion_page_poll_finds_the_payment_itself_when_webhook_is_lost(): void
+    {
+        Http::fake([
+            'api-sandbox.commas.net/public-api/checkout-sessions/transactions*' => Http::response([
+                'status' => 'success',
+                'data'   => [
+                    'transactions' => [[
+                        'id' => 2783051, 'transaction_date' => now()->addSeconds(30)->toIso8601String(), 'amount' => 932.88,
+                        'fan' => ['id' => 'f1', 'email' => 'jane@example.com'], 'product' => ['id' => self::PRODUCT],
+                    ]],
+                    'pagination' => ['has_more' => false],
+                ],
+            ]),
+        ]);
+
+        $order = $this->createOrder();
+        $this->travel(1)->minutes();
+
+        $this->getJson('/checkout/status/' . $order->uuid)->assertJsonPath('status', 'paid');
+
+        $this->assertSame('2783051', $order->refresh()->commas_transaction_id);
+        $this->assertSame(1, Subscription::count());
+        $this->assertSame(1, $this->ghlCalls());
+    }
+
     public function test_payment_without_our_metadata_is_recorded_unlinked(): void
     {
         $this->webhook([
@@ -401,7 +438,7 @@ class CommasCheckoutTest extends TestCase
         $this->get('/admin/orders')->assertOk()
             ->assertSee($paid->invoice_number)
             ->assertSee('Needs review')
-            ->assertSee('Paid $1.00, expected $897.00');
+            ->assertSee('Paid $1.00, expected at least $897.00');
 
         $this->get('/admin/orders?status=mismatch')->assertOk()
             ->assertSee('bad@example.com')

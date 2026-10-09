@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
 
 /**
  * Turns a paid Commas checkout into an enrollment — exactly once.
@@ -21,6 +22,69 @@ use Illuminate\Support\Facades\Log;
  */
 class EnrollmentFulfillment
 {
+    public function __construct(private CommasService $commas)
+    {
+    }
+
+    /**
+     * Look this one order up in the recent Commas transactions and fulfill it if paid.
+     * Same matching as commas:reconcile (email + product + time) — used by the
+     * completion page so a missed webhook doesn't depend on the cron job.
+     */
+    public function reconcileOrder(CheckoutOrder $order): bool
+    {
+        if ($order->status !== CheckoutOrder::STATUS_PENDING || ! $this->commas->isConfigured()) {
+            return false;
+        }
+
+        $since = $order->created_at->copy()->subMinutes(5);
+
+        foreach ($this->commas->listTransactions(1, 50)['transactions'] as $txn) {
+            $txnId   = (string) data_get($txn, 'id');
+            $email   = strtolower((string) data_get($txn, 'fan.email', ''));
+            $product = (string) (data_get($txn, 'product.id') ?? data_get($txn, 'service.id') ?? '');
+            $date    = data_get($txn, 'transaction_date');
+
+            if ($txnId === '' || $email !== strtolower($order->email) || $product !== (string) $order->commas_product_id
+                || ! $date || Carbon::parse($date)->lt($since)) {
+                continue;
+            }
+
+            if (CheckoutOrder::where('commas_transaction_id', $txnId)->exists()) {
+                continue;
+            }
+
+            // Already confirmed for another order of this buyer (webhook gave it the ORD id only)?
+            $paidAt = Carbon::parse($date);
+            $takenByWebhook = CheckoutOrder::where('id', '!=', $order->id)
+                ->whereIn('status', [CheckoutOrder::STATUS_PAID, CheckoutOrder::STATUS_MISMATCH])
+                ->whereNull('commas_transaction_id')
+                ->where('email', $order->email)
+                ->where('commas_product_id', $order->commas_product_id)
+                ->whereBetween('paid_at', [$paidAt->copy()->subMinutes(30), $paidAt->copy()->addMinutes(30)])
+                ->exists();
+            if ($takenByWebhook) {
+                continue;
+            }
+
+            $fulfilled = $this->markPaid($order, [
+                'product_id'     => $product,
+                'amount'         => data_get($txn, 'amount'),
+                'email'          => $email,
+                'transaction_id' => $txnId,
+                'buyer_id'       => data_get($txn, 'fan.id'),
+                'raw'            => ['source' => 'reconcile_order', 'transaction' => $txn],
+            ], 'reconcile');
+
+            if ($fulfilled) {
+                $this->notify($order->refresh());
+            }
+            return $fulfilled;
+        }
+
+        return false;
+    }
+
     /**
      * @param array{
      *   product_id?: ?string, amount: float|string|null, email?: ?string,
@@ -63,9 +127,9 @@ class EnrollmentFulfillment
             $productId  = $payment['product_id'] ?? null;
 
             $locked->fill([
-                'commas_transaction_id' => $txnId,
-                'commas_payment_id'     => $paymentId,
-                'commas_buyer_id'       => $payment['buyer_id'] ?? null,
+                'commas_transaction_id' => $txnId ?? $locked->commas_transaction_id,
+                'commas_payment_id'     => $paymentId ?? $locked->commas_payment_id,
+                'commas_buyer_id'       => $payment['buyer_id'] ?? $locked->commas_buyer_id,
                 'paid_amount'           => $paidAmount,
                 'paid_at'               => now(),
                 'confirmed_via'         => $via,
@@ -175,8 +239,10 @@ class EnrollmentFulfillment
             return "Paid for product {$productId}, expected {$order->commas_product_id} ({$order->plan_key})";
         }
 
-        if (abs($paidAmount - (float) $order->amount) > 0.009) {
-            return sprintf('Paid $%.2f, expected $%.2f (%s)', $paidAmount, (float) $order->amount, $order->plan_key);
+        // Commas may add a processing surcharge on top of the price (~4% on this account:
+        // $1.00 → $1.04), so only paying LESS than the plan price is a problem.
+        if ($paidAmount + 0.009 < (float) $order->amount) {
+            return sprintf('Paid $%.2f, expected at least $%.2f (%s)', $paidAmount, (float) $order->amount, $order->plan_key);
         }
 
         return null;

@@ -194,6 +194,18 @@ class CommasCheckoutController extends Controller
             $this->verifyFromBrowser($order);
         }
 
+        // Still waiting after 20s → look the payment up in Commas' transaction list ourselves
+        // (at most every 15s), so a lost webhook never depends on the cron job.
+        if ($order->refresh()->status === CheckoutOrder::STATUS_PENDING
+            && $order->created_at->lt(now()->subSeconds(20))
+            && Cache::add('commas_reconcile_' . $order->id, true, 15)) {
+            try {
+                $this->fulfillment->reconcileOrder($order);
+            } catch (\Throwable $e) {
+                Log::warning('[Commas] Order lookup from status poll failed', ['order' => $order->uuid, 'error' => $e->getMessage()]);
+            }
+        }
+
         return response()->json($this->statusPayload($order));
     }
 
