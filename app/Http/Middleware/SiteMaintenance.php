@@ -35,9 +35,10 @@ class SiteMaintenance
 
         $secret = (string) config('maintenance.secret', '');
 
-        // ?preview=<secret> → set the bypass cookie and reload without the query string
+        // ?preview=<secret> → set the bypass cookie and reload the same page without that param,
+        // so one link works: /accept-checkout?plan=test&preview=<secret>
         if ($secret !== '' && hash_equals($secret, (string) $request->query('preview', ''))) {
-            return redirect($request->url())
+            return redirect($request->fullUrlWithoutQuery('preview'))
                 ->withCookie(cookie(self::PREVIEW_COOKIE, hash_hmac('sha256', 'site-preview', $secret), 60 * 24 * 7));
         }
 

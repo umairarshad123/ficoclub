@@ -1204,6 +1204,53 @@
             .plan-summary .price-total-amount { font-size: 42px; }
             .cta-inline .pay-btn { height: 56px; font-size: 16px; }
         }
+
+        /* ── Desktop-only plan card polish (phones keep the stacked layout above) ── */
+        @media (min-width: 761px) {
+            .plan-summary { grid-template-columns: minmax(0, 1fr) 300px; }
+            .plan-summary .ps-info { padding: 30px 34px 26px; }
+
+            /* Plan tag colours match the pricing cards: Silver green · Gold orange · Platinum/Signature red */
+            .plan-summary .plan-tag.silver-tag   { background: #f0fdf4; border: 1px solid #bbf7d0; color: #15803d; }
+            .plan-summary .plan-tag.gold-tag     { background: #fff7ed; border: 1px solid #fed7aa; color: #c2410c; }
+            .plan-summary .plan-tag.platinum-tag { background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; }
+
+            /* Lighter two-column checklist — no row dividers */
+            .plan-summary .features { column-gap: 30px; row-gap: 2px; }
+            .plan-summary .features li { border-bottom: none; padding: 6px 0; font-size: 13.5px; }
+            .plan-summary .features li .chk { width: 18px; height: 18px; min-width: 18px; font-size: 10px; }
+
+            /* Price panel: big total first, then the breakdown */
+            .plan-summary .ps-price {
+                padding: 30px 28px;
+                background: linear-gradient(165deg, #f0fdf4 0%, #dcfce7 100%);
+                justify-content: center;
+            }
+            .plan-summary .ps-price .price-total-row {
+                order: 1;
+                flex-direction: column;
+                align-items: flex-start;
+                margin: 0;
+                padding: 0;
+                border-top: none;
+            }
+            .plan-summary .ps-price .price-total-label {
+                display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+                font-size: 11px; letter-spacing: 2px;
+            }
+            .plan-summary .ps-price .price-total-label span { margin-left: 0 !important; }
+            .plan-summary .ps-price .price-total-amount { font-size: 64px; margin-top: 8px; }
+            .plan-summary .ps-price .price-billing-note {
+                order: 2;
+                margin: 8px 0 20px;
+                padding-bottom: 18px;
+                border-bottom: 1.5px solid var(--green-border);
+                font-size: 12px;
+                line-height: 1.5;
+            }
+            .plan-summary .ps-price .price-row { order: 3; font-size: 13px; }
+            .plan-summary .ps-price .price-row:last-of-type { margin-bottom: 0; }
+        }
     </style>
 </head>
 <body>
