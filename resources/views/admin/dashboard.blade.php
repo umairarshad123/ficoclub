@@ -4,6 +4,12 @@
 
 @section('content')
 
+<div class="inline-flex rounded-lg border border-gray-200 bg-white p-1 text-sm font-medium mb-6">
+  <a href="{{ route('admin.dashboard') }}" class="px-3 py-1.5 rounded-md text-gray-600 hover:text-ink">Commas · live</a>
+  <span class="px-3 py-1.5 rounded-md bg-olive-dark text-paper">Authorize.Net · legacy</span>
+</div>
+
+
 {{-- ─── KPI row ────────────────────────────────────────────────────────────── --}}
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
   <x-kpi label="Total Clients" :value="number_format($kpis['total_customers'])" sub="all-time enrollments" tone="slate" />

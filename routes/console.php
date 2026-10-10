@@ -29,3 +29,9 @@ Schedule::command('commas:reconcile')
     ->everyTenMinutes()
     ->withoutOverlapping()
     ->appendOutputTo(storage_path('logs/commas-reconcile.log'));
+
+// Every 10 min — mirror all Commas transactions for the admin dashboard.
+Schedule::command('commas:sync')
+    ->everyTenMinutes()
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/commas-sync.log'));

@@ -4,6 +4,10 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\CheckoutOrder;
+use App\Models\CommasTransaction;
+use App\Services\CommasDashboard;
+use App\Services\CommasService;
+use App\Services\CommasTransactionSync;
 use App\Models\Lead;
 use App\Models\Payment;
 use App\Models\Subscription;
@@ -23,7 +27,133 @@ class DashboardController extends Controller
     // ═════════════════════════════════════════════════════════════════════════
     // Main dashboard
     // ═════════════════════════════════════════════════════════════════════════
-    public function index()
+    /**
+     * Commas dashboard (default) — or the legacy Authorize.Net one with ?view=legacy.
+     */
+    public function index(Request $request)
+    {
+        if ($request->query('view') === 'legacy') {
+            return $this->legacyIndex();
+        }
+
+        $dash = (new CommasDashboard(CommasDashboard::timezone()))->build((string) $request->query('range', '30d'));
+
+        return view('admin.dashboard-commas', $dash + [
+            'ranges'       => CommasDashboard::RANGES,
+            'lastSyncedAt' => CommasTransactionSync::lastSyncedAt(),
+            'health'       => $this->buildOperationalHealth(),
+            'tz'           => CommasDashboard::timezone(),
+        ]);
+    }
+
+    /** "Sync now" button — pull every Commas transaction immediately. */
+    public function commasSync(CommasService $commas, CommasTransactionSync $sync)
+    {
+        if (! $commas->isConfigured()) {
+            return back()->with('error', 'COMMAS_API_KEY is not set.');
+        }
+
+        try {
+            $stats = $sync->run();
+        } catch (\Throwable $e) {
+            return back()->with('error', 'Commas sync failed: ' . $e->getMessage());
+        }
+
+        return back()->with('success', sprintf('Synced %d Commas transactions (%d new, %d updated).', $stats['seen'], $stats['created'], $stats['updated']));
+    }
+
+    // ═════════════════════════════════════════════════════════════════════════
+    // COMMAS SALES — every Commas transaction (website + funnels / payment links)
+    // ═════════════════════════════════════════════════════════════════════════
+    public function commasSales(Request $request)
+    {
+        $query = $this->commasSalesQuery($request);
+
+        $totals = [
+            'count'    => (clone $query)->count(),
+            'gross'    => (float) (clone $query)->sum('amount'),
+            'fees'     => (float) (clone $query)->sum('fee_amount'),
+            'net'      => (float) (clone $query)->sum('net_amount'),
+            'refunded' => (float) (clone $query)->sum('refunded_amount'),
+        ];
+
+        $products = CommasTransaction::query()
+            ->whereNotNull('product_title')
+            ->select('product_title')->distinct()->orderBy('product_title')->pluck('product_title');
+
+        return view('admin.commas-sales', [
+            'rows'         => $query->orderByDesc('transaction_date')->paginate(25)->withQueryString(),
+            'totals'       => $totals,
+            'products'     => $products,
+            'filters'      => $request->only(['q', 'product', 'source', 'state', 'from', 'to']),
+            'lastSyncedAt' => CommasTransactionSync::lastSyncedAt(),
+            'websiteIds'   => CommasTransaction::websiteProductIds(),
+            'tz'           => CommasDashboard::timezone(),
+        ]);
+    }
+
+    public function commasSalesCsv(Request $request): StreamedResponse
+    {
+        $query = $this->commasSalesQuery($request)->orderByDesc('transaction_date');
+        $tz    = CommasDashboard::timezone();
+        $web   = CommasTransaction::websiteProductIds();
+
+        return response()->streamDownload(function () use ($query, $tz, $web) {
+            $out = fopen('php://output', 'w');
+            fputcsv($out, ['Date', 'Customer', 'Email', 'Phone', 'Product', 'Source', 'Gross', 'Fee', 'Net', 'Refunded', 'Payout', 'Payout date', 'Commas ID']);
+            $query->chunk(500, function ($rows) use ($out, $tz, $web) {
+                foreach ($rows as $t) {
+                    fputcsv($out, [
+                        optional($t->transaction_date)->setTimezone($tz)->format('Y-m-d H:i'),
+                        $t->customer_name, $t->customer_email, $t->customer_phone,
+                        $t->product_title,
+                        in_array($t->product_id, $web, true) ? 'Website' : 'Commas (other)',
+                        $t->amount, $t->fee_amount, $t->net_amount, $t->refunded_amount,
+                        $t->fund_released ? 'Released' : 'On hold',
+                        optional($t->fund_release_on)->setTimezone($tz)->format('Y-m-d'),
+                        $t->commas_id,
+                    ]);
+                }
+            });
+            fclose($out);
+        }, 'commas-sales-' . now()->format('Ymd-His') . '.csv', ['Content-Type' => 'text/csv; charset=UTF-8']);
+    }
+
+    private function commasSalesQuery(Request $request)
+    {
+        $query = CommasTransaction::query();
+        $tz    = CommasDashboard::timezone();
+
+        if ($search = trim((string) $request->input('q', ''))) {
+            $query->where(function ($w) use ($search) {
+                $w->where('customer_name', 'like', "%{$search}%")
+                  ->orWhere('customer_email', 'like', "%{$search}%")
+                  ->orWhere('customer_phone', 'like', "%{$search}%")
+                  ->orWhere('product_title', 'like', "%{$search}%")
+                  ->orWhere('commas_id', 'like', "%{$search}%");
+            });
+        }
+        if ($product = $request->input('product')) { $query->where('product_title', $product); }
+        if ($source = $request->input('source')) {
+            $web = CommasTransaction::websiteProductIds() ?: ['__none__'];
+            $source === 'website' ? $query->whereIn('product_id', $web) : $query->whereNotIn('product_id', $web);
+        }
+        match ($request->input('state')) {
+            'refunded' => $query->where('refund_count', '>', 0),
+            'on_hold'  => $query->where('fund_released', false),
+            'released' => $query->where('fund_released', true),
+            default    => null,
+        };
+        if ($from = $request->input('from')) { $query->where('transaction_date', '>=', Carbon::parse($from, $tz)->startOfDay()->utc()); }
+        if ($to   = $request->input('to'))   { $query->where('transaction_date', '<=', Carbon::parse($to, $tz)->endOfDay()->utc()); }
+
+        return $query;
+    }
+
+    // ═════════════════════════════════════════════════════════════════════════
+    // Legacy (Authorize.Net-era) dashboard — /admin?view=legacy
+    // ═════════════════════════════════════════════════════════════════════════
+    private function legacyIndex()
     {
         return view('admin.dashboard', [
             'kpis'              => $this->buildKpis(),

@@ -66,6 +66,7 @@ return [
         'environment'    => env('COMMAS_ENVIRONMENT', 'sandbox'),   // sandbox | production
         'creator_slug'   => env('COMMAS_CREATOR_SLUG'),             // handle in fanbasis.com/agency-checkout/<slug>/...
         'webhook_secret' => env('COMMAS_WEBHOOK_SECRET'),           // whsk_... returned when the webhook is registered
+        'timezone'       => env('COMMAS_TIMEZONE', 'America/New_York'), // dashboard day boundaries
     ],
 
     'authorize_net' => [
