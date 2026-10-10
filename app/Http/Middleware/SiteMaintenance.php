@@ -2,13 +2,15 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\SiteSettings;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Blocks the public site (pages, forms, checkout) while config('maintenance.enabled')
- * is on. Admin, webhooks and .well-known stay reachable. See config/maintenance.php.
+ * is on (or the admin switched it on from the Website page). Admin, webhooks and
+ * .well-known stay reachable. See config/maintenance.php + App\Support\SiteSettings.
  */
 class SiteMaintenance
 {
@@ -35,7 +37,7 @@ class SiteMaintenance
                 ->withCookie(cookie(self::PREVIEW_COOKIE, hash_hmac('sha256', 'site-preview', $secret), 60 * 24 * 7));
         }
 
-        if (! config('maintenance.enabled')) {
+        if (! SiteSettings::maintenanceEnabled()) {
             return $next($request);
         }
 

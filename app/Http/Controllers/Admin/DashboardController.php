@@ -8,6 +8,7 @@ use App\Models\CommasTransaction;
 use App\Services\CommasDashboard;
 use App\Services\CommasService;
 use App\Services\CommasTransactionSync;
+use App\Support\SiteSettings;
 use App\Models\Lead;
 use App\Models\Payment;
 use App\Models\Subscription;
@@ -60,6 +61,87 @@ class DashboardController extends Controller
         }
 
         return back()->with('success', sprintf('Synced %d Commas transactions (%d new, %d updated).', $stats['seen'], $stats['created'], $stats['updated']));
+    }
+
+    // ═════════════════════════════════════════════════════════════════════════
+    // WEBSITE — control panel: site status, checkout setup, links, integrations
+    // ═════════════════════════════════════════════════════════════════════════
+    public function website(CommasService $commas)
+    {
+        $since  = now()->subDays(30);
+        $base   = rtrim((string) config('app.url'), '/');
+        $secret = (string) config('maintenance.secret', '');
+
+        $paidByPlan = CheckoutOrder::where('status', CheckoutOrder::STATUS_PAID)
+            ->where('paid_at', '>=', $since)
+            ->get(['plan_key', 'amount'])
+            ->groupBy('plan_key');
+
+        $plans = collect(config('plans.plans'))->map(fn ($p, $key) => [
+            'key'        => $key,
+            'label'      => $p['label'],
+            'amount'     => (float) $p['amount'],
+            'hidden'     => ! empty($p['hidden']),
+            'product_id' => $p['commas_product_id'] ?? null,
+            'checkout'   => $base . '/accept-checkout?plan=' . $key . (! empty($p['hidden']) && $secret ? '&preview=' . $secret : ''),
+            'onboarding' => empty($p['hidden']) ? $base . '/onboardingform?plan=' . $key : null,
+            'paid_30d'   => $paidByPlan->get($key)?->count() ?? 0,
+            'rev_30d'    => (float) ($paidByPlan->get($key)?->sum('amount') ?? 0),
+        ])->values();
+
+        $check = fn ($v) => (bool) $v;
+        $integrations = [
+            ['Commas API key',                 $commas->isConfigured(),                                  'Payments, sync, refunds'],
+            ['Commas webhook secret',          $check(config('services.commas.webhook_secret')),         'Verifies payment notifications'],
+            ['Commas account handle',          $check(config('services.commas.creator_slug')),           config('services.commas.creator_slug') ?: 'missing'],
+            ['GHL — checkout webhook',         $check(config('services.ghl.checkout_webhook_url')),      'New sale (no referral)'],
+            ['GHL — referral webhook',         $check(config('services.ghl.referral_webhook_url')),      'New sale with a referral code'],
+            ['GHL — lead form webhook',        $check(config('services.ghl.lead_webhook_url')),          'Homepage lead form'],
+            ['GHL — credit roadmap webhook',   $check(config('services.ghl.roadmap_webhook_url')),       'Roadmap popup'],
+            ['GHL — funding webhook',          $check(config('services.ghl.funding_webhook_url')),       'Funding forms'],
+            ['Meta Pixel + Conversions API',   $check(config('services.meta.pixel_id') && config('services.meta.capi_token')), 'Purchase events for ads'],
+            ['DisputeFox',                     $check(config('disputefox.enabled')),                     'Lead forms → CRM'],
+            ['Google reCAPTCHA',               $check(env('RECAPTCHA_SECRET_KEY')),                       'Spam protection on lead forms'],
+        ];
+
+        $pages = [
+            ['Homepage + pricing',      $base . '/'],
+            ['Funding page',            $base . '/funding'],
+            ['Funding-ready form',      $base . '/funding-ready-form'],
+            ['Onboarding (direct)',     $base . '/onboardingform'],
+            ['Terms of Service',        $base . '/terms-of-service'],
+            ['Privacy Policy',          $base . '/privacy-policy'],
+            ['Service Agreement',       $base . '/service-agreement'],
+            ['Notice of Cancellation',  $base . '/notice-of-cancellation'],
+        ];
+
+        return view('admin.website', [
+            'maintenance'   => SiteSettings::maintenanceEnabled(),
+            'override'      => SiteSettings::get('maintenance'),
+            'previewLink'   => $secret ? $base . '/?preview=' . $secret : null,
+            'provider'      => config('payments.provider'),
+            'environment'   => $commas->environment(),
+            'plans'         => $plans,
+            'integrations'  => $integrations,
+            'pages'         => $pages,
+            'health'        => $this->buildOperationalHealth(),
+            'lastSyncedAt'  => CommasTransactionSync::lastSyncedAt(),
+            'leads30'       => Lead::where('created_at', '>=', $since)->count(),
+            'leadsTotal'    => Lead::count(),
+            'pending30'     => CheckoutOrder::where('status', CheckoutOrder::STATUS_PENDING)->where('created_at', '>=', $since)->count(),
+            'paid30'        => CheckoutOrder::where('status', CheckoutOrder::STATUS_PAID)->where('paid_at', '>=', $since)->count(),
+        ]);
+    }
+
+    /** Turn the public maintenance page on/off from the admin (no .env edit needed). */
+    public function toggleMaintenance(Request $request)
+    {
+        $on = $request->boolean('on');
+        SiteSettings::set('maintenance', $on);
+
+        return back()->with('success', $on
+            ? 'Maintenance mode is ON — visitors now see the "We\'ll be back soon" page. Admin stays available.'
+            : 'The website is LIVE again for everyone.');
     }
 
     // ═════════════════════════════════════════════════════════════════════════

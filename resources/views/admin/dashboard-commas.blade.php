@@ -21,7 +21,7 @@
   <div class="inline-flex rounded-lg border border-gray-200 bg-white p-1 text-sm font-medium overflow-x-auto max-w-full">
     @foreach ($ranges as $key => $label)
       <a href="{{ route('admin.dashboard', ['range' => $key]) }}"
-         class="px-3 py-1.5 rounded-md {{ $range === $key ? 'bg-gold text-olive-dark font-semibold' : 'text-gray-600 hover:text-ink' }}">{{ $label }}</a>
+         class="px-3 py-1.5 rounded-md {{ $range === $key ? 'bg-gold text-white font-semibold' : 'text-gray-600 hover:text-ink' }}">{{ $label }}</a>
     @endforeach
   </div>
 

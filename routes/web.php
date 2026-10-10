@@ -195,6 +195,10 @@ Route::middleware('admin.auth')->group(function () {
         Route::get('/payments',         [DashboardController::class, 'paymentsIndex'])->name('admin.payments');
         Route::get('/payments/export',  [DashboardController::class, 'paymentsExportCsv'])->name('admin.payments.csv');
 
+        // Website control panel (site status, links, integrations)
+        Route::get('/website',              [DashboardController::class, 'website'])->name('admin.website');
+        Route::post('/website/maintenance', [DashboardController::class, 'toggleMaintenance'])->name('admin.website.maintenance');
+
         // Commas sales — every Commas transaction (website + funnels / payment links)
         Route::get('/commas-sales',         [DashboardController::class, 'commasSales'])->name('admin.commas-sales');
         Route::get('/commas-sales/export',  [DashboardController::class, 'commasSalesCsv'])->name('admin.commas-sales.csv');
