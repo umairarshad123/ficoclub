@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Middleware\SiteMaintenance;
+use App\Support\SiteContent;
 use App\Models\CheckoutOrder;
 use App\Services\CommasService;
 use App\Services\EnrollmentFulfillment;
@@ -46,6 +47,10 @@ class CommasCheckoutController extends Controller
 
     public function createOrder(Request $request)
     {
+        if (! SiteContent::salesOpen()) {
+            return response()->json(['success' => false, 'message' => SiteContent::get('sales_paused_message')], 503);
+        }
+
         $plans = config('plans.plans');
 
         $validated = $request->validate([

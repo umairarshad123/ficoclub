@@ -1185,6 +1185,13 @@
         .checkout-footer .footer-note.croa { font-size: 10.5px; opacity: .78; }
 
         .features-more { display: none; }
+        .price-charged {
+            margin-top: 12px; padding: 10px 12px; border-radius: 10px;
+            background: #ffffff; border: 1px dashed var(--green-border);
+            font-size: 12.5px; color: var(--text-mid); line-height: 1.5;
+        }
+        .price-charged strong { color: var(--navy); font-size: 14px; }
+        .price-charged span { color: var(--text-muted); font-size: 11.5px; }
         @media (max-width: 640px) {
             /* Stacked fields: use one consistent 16px rhythm instead of grid gap + margin */
             .fg2, .fg3 { gap: 0; }
@@ -1250,6 +1257,7 @@
                 line-height: 1.5;
             }
             .plan-summary .ps-price .price-row { order: 3; font-size: 13px; }
+            .plan-summary .ps-price .price-charged { order: 4; margin-top: 14px; }
             .plan-summary .ps-price .price-row:last-of-type { margin-bottom: 0; }
         }
     </style>
@@ -1265,6 +1273,17 @@ Fallback = config('plans.default') if nothing/invalid passed
 
 
 
+
+@php
+  $sc        = \App\Support\SiteContent::all();
+  $annBg     = ['green' => '#16a34a', 'gold' => '#d97706', 'red' => '#dc2626', 'navy' => '#0F2044'][$sc['announce_style']] ?? '#16a34a';
+  $surcharge = \App\Support\PlanCatalog::surchargePercent();
+@endphp
+@if ($sc['announce_on'] && trim($sc['announce_text']) !== '')
+  <div style="background: {{ $annBg }}; color:#fff; text-align:center; font-weight:800; font-size:13px; padding:10px 16px;">
+    @if ($sc['announce_link'])<a href="{{ $sc['announce_link'] }}" style="color:#fff;">{{ $sc['announce_text'] }} →</a>@else{{ $sc['announce_text'] }}@endif
+  </div>
+@endif
 
 <div class="page-wrap">
 
@@ -1319,11 +1338,20 @@ Fallback = config('plans.default') if nothing/invalid passed
                     <span>Setup fee</span>
                     <span class="free">FREE</span>
                 </div>
+                @if ($surcharge > 0)
+                <div class="price-row" id="surchargeRow">
+                    <span>Card processing fee ({{ rtrim(rtrim(number_format($surcharge, 2), '0'), '.') }}%)</span>
+                    <span class="amount-val" id="surchargeAmt">&nbsp;</span>
+                </div>
+                @endif
                 <div class="price-total-row">
                     <div class="price-total-label">Program Total</div>
                     <div class="price-total-amount"><sup>$</sup><span id="priceBig">&nbsp;</span></div>
                 </div>
                 <div class="price-billing-note" id="priceBillingNote">&nbsp;</div>
+                @if ($surcharge > 0)
+                <div class="price-charged" id="chargedToday">&nbsp;</div>
+                @endif
             </div>
         </div>
 
@@ -1331,6 +1359,12 @@ Fallback = config('plans.default') if nothing/invalid passed
         <div class="left-col">
 
             <div id="payment-errors"></div>
+
+            @unless ($sc['sales_open'])
+              <div style="margin-bottom:18px;padding:16px 18px;border-radius:14px;background:#fffbeb;border:1.5px solid #fde68a;color:#92400e;font-weight:700;font-size:14px;line-height:1.55;">
+                ⏸ {{ $sc['sales_paused_message'] }}
+              </div>
+            @endunless
 
             <form id="paymentForm" novalidate>
 
@@ -1438,7 +1472,7 @@ Fallback = config('plans.default') if nothing/invalid passed
 
                 {{-- Continue → opens the secure card form below --}}
                 <div class="cta-inline">
-                    <button type="button" class="pay-btn" id="payNowButton">
+                    <button type="button" class="pay-btn" id="payNowButton" @unless ($sc['sales_open']) disabled style="opacity:.5;cursor:not-allowed" @endunless>
                         <span class="pay-btn-ring"></span>
                         🔒&nbsp; Continue to Secure Payment
                     </button>
@@ -1566,6 +1600,16 @@ var DEFAULT_PLAN = {!! json_encode($defaultPlan) !!};
     document.getElementById('priceBig').textContent       = plan.priceBig;
     document.getElementById('priceBillingNote').textContent = plan.billingNote;
     document.getElementById('selected_plan').value = planKey;
+
+    // Card processing fee Commas adds on top (shown so the card charge isn't a surprise)
+    (function () {
+        var pct = {{ (float) $surcharge }};
+        if (!pct) return;
+        var amt = parseFloat(plan.amount), fee = Math.round(amt * pct) / 100, total = Math.round((amt + fee) * 100) / 100;
+        var f = function (n) { return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
+        document.getElementById('surchargeAmt').textContent = '+' + f(fee);
+        document.getElementById('chargedToday').innerHTML = 'Charged to your card today: <strong>' + f(total) + '</strong> <span>(includes ' + pct + '% card processing fee)</span>';
+    })();
 
     // Strike-through "was" price + savings badge (only when applicable)
     (function () {

@@ -3,7 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>850 FICO Club — Credit Is King & Cash Is Power</title>
+@php $sc = \App\Support\SiteContent::all(); @endphp
+<title>{{ $sc['seo_title'] }}</title>
+<meta name="description" content="{{ $sc['seo_description'] }}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <script src="https://www.google.com/recaptcha/api.js" async defer></script>
@@ -740,7 +742,7 @@ color:#fff !important;
     <span class="calendar-close" id="closeCalendar">&times;</span>
 
     <iframe
-      src="https://api.leadconnectorhq.com/widget/booking/jdPgwX73WgVZQuCJKFlI"
+      src="{{ $sc['booking_url'] }}"
       scrolling="no"
       id="jdPgwX73WgVZQuCJKFlI_1772830541003">
     </iframe>
@@ -756,7 +758,7 @@ color:#fff !important;
       openBtn.addEventListener("click", function(e){
           e.preventDefault();
           if(window.innerWidth <= 767){
-              window.location.href = "https://api.leadconnectorhq.com/widget/booking/jdPgwX73WgVZQuCJKFlI";
+              window.location.href = @json($sc['booking_url']);
           } else {
               popup.style.display = "flex";
           }
@@ -937,25 +939,26 @@ color:#fff !important;
 </style>
 
 <!-- TICKER -->
+@php
+  $annBg = ['green' => '#16a34a', 'gold' => '#d97706', 'red' => '#dc2626', 'navy' => '#0F2044'][$sc['announce_style']] ?? '#16a34a';
+@endphp
+@if ($sc['announce_on'] && trim($sc['announce_text']) !== '')
+<div class="ticker-bar" style="background: {{ $annBg }}; display:flex; align-items:center; justify-content:center; padding:0 16px;">
+  @if ($sc['announce_link'])
+    <a href="{{ $sc['announce_link'] }}" style="color:#fff;font-weight:800;font-size:13px;letter-spacing:.3px;text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $sc['announce_text'] }} <span style="text-decoration:underline;margin-left:6px;">Learn more →</span></a>
+  @else
+    <span style="color:#fff;font-weight:800;font-size:13px;letter-spacing:.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $sc['announce_text'] }}</span>
+  @endif
+</div>
+@else
 <div class="ticker-bar">
   <div class="ticker-inner">
-    <span class="ticker-item">COLLECTIONS Challenged</span><span class="ticker-dot">✦</span>
-    <span class="ticker-item">CHARGE-OFFS Challenged</span><span class="ticker-dot">✦</span>
-    <span class="ticker-item">BANKRUPTCIES Challenged</span><span class="ticker-dot">✦</span>
-    <span class="ticker-item">STUDENT LOANS Challenged</span><span class="ticker-dot">✦</span>
-    <span class="ticker-item">LATE PAYMENTS Challenged</span><span class="ticker-dot">✦</span>
-    <span class="ticker-item">HARD INQUIRIES Challenged</span><span class="ticker-dot">✦</span>
-    <span class="ticker-item">Personal Information Challenged</span><span class="ticker-dot">✦</span>
-    <span class="ticker-item">REPOSSESSIONS CHALLENGED</span><span class="ticker-dot">✦</span>
-    <span class="ticker-item">COLLECTIONS Challenged</span><span class="ticker-dot">✦</span>
-    <span class="ticker-item">CHARGE-OFFS Challenged</span><span class="ticker-dot">✦</span>
-    <span class="ticker-item">BANKRUPTCIES Challenged</span><span class="ticker-dot">✦</span>
-    <span class="ticker-item">STUDENT LOANS Challenged</span><span class="ticker-dot">✦</span>
-    <span class="ticker-item">LATE PAYMENTS Challenged</span><span class="ticker-dot">✦</span>
-    <span class="ticker-item">HARD INQUIRIES Challenged</span><span class="ticker-dot">✦</span>
-    <span class="ticker-item">REPOSSESSIONS CHALLENGED</span><span class="ticker-dot">✦</span>
+    @foreach (array_merge($sc['ticker'], $sc['ticker']) as $tick)
+    <span class="ticker-item">{{ $tick }}</span><span class="ticker-dot">✦</span>
+    @endforeach
   </div>
 </div>
+@endif
 
 <!-- NAV -->
 <nav id="mainNav">
@@ -1206,17 +1209,17 @@ color:#fff !important;
   <div class="hero-body hero-body--centered">
     <div class="hero-left hero-left--centered">
         <div class="hero-eyebrow">
-          We Specialize in Consumer Law, FCRA, FDCPA & Metro 2 Compliance
+          {{ $sc['hero_eyebrow'] }}
         </div>
-      <h1 class="hero-h1 reveal">Improve Your Credit<br>  
-        <span class="accent-green">With Professional</span> Credit Analysis  <span class="accent-green underline-anim">& Guidance</span>
+      <h1 class="hero-h1 reveal">{{ $sc['hero_line1'] }}<br>
+        <span class="accent-green">{{ $sc['hero_green1'] }}</span> {{ $sc['hero_mid'] }}  <span class="accent-green underline-anim">{{ $sc['hero_green2'] }}</span>
       </h1>
 
       </div>
-      <p class="hero-lead reveal d2">We help consumers review their credit reports and challenge inaccurate or unverifiable information under federal consumer protection laws.<strong>YES.</strong></p>
+      <p class="hero-lead reveal d2">{{ $sc['hero_lead'] }}@if ($sc['hero_lead_strong'])<strong>{{ $sc['hero_lead_strong'] }}</strong>@endif</p>
       <div class="hero-ctas reveal d3">
-        <a href="#pricing" class="btn btn-green">View Membership Plans<span class="arrow-ic">→</span></a>
-        <a href="#contact" class="btn btn-outline">Get Free Credit Analysis</a>
+        <a href="#pricing" class="btn btn-green">{{ $sc['hero_cta1'] }}<span class="arrow-ic">→</span></a>
+        <a href="#contact" class="btn btn-outline">{{ $sc['hero_cta2'] }}</a>
       </div>
     </div>
   </div>
@@ -1325,41 +1328,15 @@ color:#fff !important;
 <div id="stats">
   <div class="wrap">
     <div class="stats-row">
-
+      @php $statColors = ['class="col-g count-num"', 'class="col-y count-num"', 'class="col-r count-num"', 'style="color:#60a5fa" class="count-num"', 'class="col-g count-num"']; @endphp
+      @foreach ($sc['stats'] as $i => $stat)
       <div class="stat-box">
         <div class="stat-n">
-          <span class="col-g count-num" data-count="10000" data-suffix="+">0</span>
+          <span {!! $statColors[$i % 5] !!} data-count="{{ (int) $stat['count'] }}" data-prefix="{{ $stat['prefix'] }}" data-suffix="{{ $stat['suffix'] }}">0</span>
         </div>
-        <div class="stat-l">Clients Served</div>
+        <div class="stat-l">{{ $stat['label'] }}</div>
       </div>
-
-      <div class="stat-box">
-        <div class="stat-n">
-          <span class="col-y count-num" data-count="137" data-prefix="+">0</span>
-        </div>
-        <div class="stat-l">Average Client Score Improvement <br> (Results Vary)</div>
-      </div>
-
-      <div class="stat-box">
-        <div class="stat-n">
-          <span class="col-r count-num" data-count="25000" data-suffix="+">0</span>
-        </div>
-        <div class="stat-l">Credit Reports Reviewed</div>
-      </div>
-
-      <div class="stat-box">
-        <div class="stat-n">
-          <span style="color:#60a5fa" class="count-num" data-count="15000" data-suffix="+">0</span>
-        </div>
-        <div class="stat-l">Disputes Submitted for Clients</div>
-      </div>
-
-      <div class="stat-box">
-        <div class="stat-n">
-          <span class="col-g count-num" data-count="8" data-suffix="+ Yrs">0</span>
-        </div>
-        <div class="stat-l">Industry Experience</div>
-      </div>
+      @endforeach
     </div>
   </div>
 </div>
@@ -1775,6 +1752,10 @@ color:#fff !important;
   <div class="pper">{{ $ps_plan['period'] }}</div>
   @if (!empty($ps_plan['monitoring_note']))
   <div class="pcmn">{{ $ps_plan['monitoring_note'] }}</div>
+  @endif
+  @php $ps_fee = \App\Support\PlanCatalog::surchargePercent(); @endphp
+  @if ($ps_fee > 0)
+  <div class="pcmn" style="opacity:.85">+ {{ rtrim(rtrim(number_format($ps_fee, 2), '0'), '.') }}% card processing fee at checkout</div>
   @endif
   @if (!empty($ps_plan['save']))
   <div class="psave">SAVE ${{ $ps_plan['save'] }}</div>

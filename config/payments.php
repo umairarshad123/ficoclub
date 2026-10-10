@@ -18,4 +18,8 @@ return [
 
     'provider' => env('PAYMENT_PROVIDER', 'authorize_net'),
 
+    // Card-processing surcharge Commas adds on top of every price (observed: exactly 4%).
+    // Shown to customers on the pricing cards + checkout. Editable on Admin → Plans & Pricing.
+    'surcharge_percent' => (float) env('COMMAS_SURCHARGE_PERCENT', 4),
+
 ];

@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\SiteContent;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -9,19 +10,17 @@ use Symfony\Component\HttpFoundation\Response;
 
 class ReferralMiddleware
 {
-    private const VALID_CODES = [
-        'DL',
-        'EL',
-        'NL',
-        'EXP',
-        'LAL',
-    ];
+    /** Partner codes are managed on Admin → Site Content (defaults: DL, EL, NL, EXP, LAL). */
+    private function validCodes(): array
+    {
+        return SiteContent::referralCodes();
+    }
 
     public function handle(Request $request, Closure $next): Response
     {
         $ref = strtoupper(trim($request->query('ref', '')));
 
-        if ($ref && in_array($ref, self::VALID_CODES, true)) {
+        if ($ref && in_array($ref, $this->validCodes(), true)) {
             session(['referral_code' => $ref]);
 
             Log::info('Referral code captured', [
@@ -37,7 +36,7 @@ class ReferralMiddleware
 
         if (!session()->has('referral_code')) {
             $cookieRef = strtoupper(trim($request->cookie('referral_code', '')));
-            if ($cookieRef && in_array($cookieRef, self::VALID_CODES, true)) {
+            if ($cookieRef && in_array($cookieRef, $this->validCodes(), true)) {
                 session(['referral_code' => $cookieRef]);
                 Log::info('Referral code restored from cookie', ['code' => $cookieRef]);
             }

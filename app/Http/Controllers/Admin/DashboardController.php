@@ -23,7 +23,6 @@ class DashboardController extends Controller
 {
     private const CANCELLED_STATUSES = ['terminated', 'cancelled'];
     private const MRR_STATUSES       = ['active', 'past_due'];
-    private const REFERRAL_CODES     = ['DL', 'EL', 'NL', 'EXP'];
 
     // ═════════════════════════════════════════════════════════════════════════
     // Main dashboard
@@ -1197,7 +1196,7 @@ class DashboardController extends Controller
     private function buildReferralBreakdown(): array
     {
         $breakdown = [];
-        foreach (array_merge(self::REFERRAL_CODES, [null]) as $code) {
+        foreach (array_merge(\App\Support\SiteContent::referralCodes(), [null]) as $code) {
             $label = $code ?? 'DIRECT';
             $q = Subscription::query();
             $code === null ? $q->whereNull('referral_code') : $q->where('referral_code', $code);

@@ -195,6 +195,17 @@ Route::middleware('admin.auth')->group(function () {
         Route::get('/payments',         [DashboardController::class, 'paymentsIndex'])->name('admin.payments');
         Route::get('/payments/export',  [DashboardController::class, 'paymentsExportCsv'])->name('admin.payments.csv');
 
+        // Site content (homepage text, announcement, sales switch, referral codes, SEO)
+        Route::get('/site-content',        [\App\Http\Controllers\Admin\SiteContentController::class, 'edit'])->name('admin.site-content');
+        Route::post('/site-content',       [\App\Http\Controllers\Admin\SiteContentController::class, 'update'])->name('admin.site-content.update');
+        Route::post('/site-content/reset', [\App\Http\Controllers\Admin\SiteContentController::class, 'reset'])->name('admin.site-content.reset');
+
+        // Plans & pricing editor (names, prices, bullets, visibility) + card-fee %
+        Route::get('/plans',                 [\App\Http\Controllers\Admin\PlanController::class, 'index'])->name('admin.plans');
+        Route::post('/plans/surcharge',      [\App\Http\Controllers\Admin\PlanController::class, 'surcharge'])->name('admin.plans.surcharge');
+        Route::post('/plans/{key}',          [\App\Http\Controllers\Admin\PlanController::class, 'update'])->name('admin.plans.update')->where('key', '[a-z0-9_-]+');
+        Route::post('/plans/{key}/reset',    [\App\Http\Controllers\Admin\PlanController::class, 'reset'])->name('admin.plans.reset')->where('key', '[a-z0-9_-]+');
+
         // Website control panel (site status, links, integrations)
         Route::get('/website',              [DashboardController::class, 'website'])->name('admin.website');
         Route::post('/website/maintenance', [DashboardController::class, 'toggleMaintenance'])->name('admin.website.maintenance');
