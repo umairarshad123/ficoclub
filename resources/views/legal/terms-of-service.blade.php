@@ -564,7 +564,7 @@ footer{background:var(--navy);padding:72px 0 36px;}
 
     <div class="clause-block">
       <div class="clause-num">CROA Fee Compliance</div>
-      <p>In accordance with the <strong>Credit Repair Organizations Act (CROA)</strong>, 850 FICO Club does not charge or receive any payment for services before those services have been fully performed. The initial enrollment fee covers the first period of services rendered. Ongoing monthly fees are billed in arrears or following service delivery.</p>
+      <p>In accordance with the <strong>Credit Repair Organizations Act (CROA)</strong>, 850 FICO Club does not charge or receive any payment for services before those services have been fully performed. Plan fees (850 Club Membership at $149 / month and Platinum Fast Track at $1,497) cover the services described in your Service Agreement.</p>
     </div>
 
     <div class="clause-block">

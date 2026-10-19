@@ -736,7 +736,7 @@ footer{background:var(--navy);padding:72px 0 36px;}
       <li><i class="fas fa-check-circle"></i><span><strong>Ongoing Monitoring Support</strong> — Continued review and guidance as dispute responses are received and credit profiles are updated over time.</span></li>
     </ul>
 
-    <p>Services available under each plan tier (Gold, Platinum, or Couples) are defined at the time of enrollment and may include the items above as applicable to that plan level. 850 FICO Club reserves the right to update service offerings with reasonable notice to enrolled clients.</p>
+    <p>Services available under each plan (850 Club Membership or Platinum Fast Track) are defined at the time of enrollment and may include the items above as applicable to that plan level. 850 FICO Club reserves the right to update service offerings with reasonable notice to enrolled clients.</p>
 
     <!-- SECTION 3 — FEES -->
     <span class="section-label" id="fees">Section 03</span>
@@ -747,36 +747,31 @@ footer{background:var(--navy);padding:72px 0 36px;}
       <thead>
         <tr>
           <th>Plan</th>
-          <th>Initial Fee</th>
-          <th>Monthly Fee</th>
+          <th>Fee</th>
+          <th>Billing</th>
           <th>Coverage</th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td>Gold Membership</td>
-          <td>$249</td>
-          <td>$199 / month</td>
+          <td>850 Club Membership <span class="badge">Popular</span></td>
+          <td>$149 / month</td>
+          <td>Monthly, until you cancel</td>
           <td>1 Individual</td>
         </tr>
         <tr>
-          <td>Platinum Membership <span class="badge">Popular</span></td>
-          <td>$500</td>
-          <td>$249 / month</td>
+          <td>Platinum Fast Track</td>
+          <td>$1,497</td>
+          <td>Program fee for the 90-day program</td>
           <td>1 Individual</td>
-        </tr>
-        <tr>
-          <td>Couples Membership</td>
-          <td>$750</td>
-          <td>$399 / month</td>
-          <td>2 Individuals</td>
         </tr>
       </tbody>
     </table>
+    <p style="font-size:13px;color:#475569;">Credit monitoring through SmartCredit ($34.95 / month) is billed separately by the monitoring provider and is not included in the fees above. Clients who reach their goal on the 850 Club Membership may continue on Club Maintenance for $49 / month; ongoing monitoring and reviews are described at enrollment.</p>
 
     <div class="clause-block">
       <div class="clause-num">Billing Terms</div>
-      <p>The initial fee is charged upon enrollment and covers the first period of services. Recurring monthly fees are billed on the same calendar date each month thereafter. All fees are charged to the payment method on file at the time of billing. <strong>Client is responsible for maintaining a valid payment method on file at all times.</strong> Failed payments may result in a temporary suspension of services until the balance is resolved.</p>
+      <p>The 850 Club Membership fee is billed monthly on the same calendar date each month. The Platinum Fast Track program fee covers the 90-day program described at enrollment. All fees are charged to the payment method on file at the time of billing. <strong>Client is responsible for maintaining a valid payment method on file at all times.</strong> Failed payments may result in a temporary suspension of services until the balance is resolved.</p>
     </div>
 
     <div class="clause-block">
