@@ -766,7 +766,10 @@ color:#fff !important;
           }
       }
       openBtn.addEventListener("click", openCalendar);
-      document.querySelectorAll(".js-open-calendar").forEach(function(a){ a.addEventListener("click", openCalendar); });
+      // Delegated: the buttons are parsed after this script runs.
+      document.addEventListener("click", function(e){
+          if (e.target.closest && e.target.closest(".js-open-calendar")) openCalendar(e);
+      });
 
       closeBtn.addEventListener("click", function(){
           popup.style.display = "none";
@@ -1225,7 +1228,7 @@ color:#fff !important;
       <p class="hero-lead reveal d2">{{ $sc['hero_lead'] }}@if ($sc['hero_lead_strong'])<strong>{{ $sc['hero_lead_strong'] }}</strong>@endif</p>
       <div class="hero-ctas reveal d3">
         <a href="#pricing" class="btn btn-green">{{ $sc['hero_cta1'] }}<span class="arrow-ic">→</span></a>
-        <a href="#contact" class="btn btn-outline">{{ $sc['hero_cta2'] }}</a>
+        <a href="{{ $sc['booking_url'] }}" class="btn btn-outline js-open-calendar">{{ $sc['hero_cta2'] }}</a>
       </div>
     </div>
   </div>
@@ -1884,7 +1887,7 @@ color:#fff !important;
       <div class="remove-right-text reveal-right">
         <p>Your credit report can contain many different types of accounts and reporting details — including collections, charge-offs, bankruptcies, student loans, and medical debt.</p>
         <p>At 850 FICO Club, we help clients review their credit reports and identify information that may be inaccurate, incomplete, or unverifiable under consumer protection laws such as the Fair Credit Reporting Act (FCRA) and Fair Debt Collection Practices Act (FDCPA).</p>
-        <a href="#contact" class="btn btn-green" style="margin-top:8px;">Schedule a Credit Review<span class="arrow-ic">→</span></a>
+        <a href="{{ $sc['booking_url'] }}" class="btn btn-green js-open-calendar" style="margin-top:8px;">Schedule a Credit Review<span class="arrow-ic">→</span></a>
       </div>
     </div>
     <div class="remove-grid">
@@ -2294,7 +2297,7 @@ color:#fff !important;
           </div>
         </div>
 
-        <a href="#contact" class="btn btn-green">
+        <a href="{{ $sc['booking_url'] }}" class="btn btn-green js-open-calendar">
           Find Out Where You Stand <span class="arrow-ic">→</span>
         </a>
       </div>
@@ -2914,7 +2917,7 @@ color:#fff !important;
   <div class="wrap">
     <div class="scores-header">
       <div class="reveal"><span class="section-tag">Client Examples</span><h2>Real Clients.<br><span class="accent-green">Real Numbers.</span></h2></div>
-      <div class="scores-cta-side reveal d2"><p>Disclaimer: These examples reflect individual client experiences. Results vary based on each consumer’s credit profile and circumstances. No specific score increase or outcome is guaranteed.</p><a href="#contact" class="btn btn-green">Get My Free Analysis <span class="arrow-ic">→</span></a></div>
+      <div class="scores-cta-side reveal d2"><p>Disclaimer: These examples reflect individual client experiences. Results vary based on each consumer’s credit profile and circumstances. No specific score increase or outcome is guaranteed.</p><a href="{{ $sc['booking_url'] }}" class="btn btn-green js-open-calendar">Get My Free Analysis <span class="arrow-ic">→</span></a></div>
     </div>
     <div class="scores-grid">
 
@@ -3668,7 +3671,7 @@ color:#fff !important;
         <span class="section-tag">FAQ</span>
         <h2>Helpful Answers to <span class="accent-green">Common Questions.</span></h2>
         <p>We believe in transparency and clear communication. If your question is not covered here, our team is available to help.</p>
-        <a href="#contact" class="btn btn-green" style="margin-top:8px">Ask Us Directly <span class="arrow-ic">→</span></a>
+        <a href="{{ $sc['booking_url'] }}" class="btn btn-green js-open-calendar" style="margin-top:8px">Ask Us Directly <span class="arrow-ic">→</span></a>
       </div>
 
       <div class="faq-list reveal-right">
@@ -3802,7 +3805,7 @@ color:#fff !important;
       <h2>Your Credit Profile Can<br><span style="font-style:italic;color:var(--green)">Change Over Time.</span></h2>
       <p>Book your free credit analysis. We'll review your 3-bureau report, identify information that may need closer review, and provide personalized guidance based on your current credit profile.</p>
       <div class="cta-btns">
-        <a href="#contact" class="btn btn-green" style="padding:18px 44px;font-size:15px">Get My Free Credit Analysis <span class="arrow-ic">→</span></a>
+        <a href="{{ $sc['booking_url'] }}" class="btn btn-green js-open-calendar" style="padding:18px 44px;font-size:15px">Book a Free Call <span class="arrow-ic">→</span></a>
       </div>
       <div class="cta-trusts">
         <span class="cta-trust-item">Free Credit Analysis</span>
@@ -3814,6 +3817,7 @@ color:#fff !important;
   </div>
 </section>
 
+@if (false) {{-- Contact form section removed Oct 2026 — dead block, safe to delete --}}
 <style>
 
 .contact-photo{
@@ -4076,6 +4080,7 @@ color:#fff !important;
     </div>
   </div>
 </section>
+@endif
 
 
 <!-- FOOTER -->
@@ -4109,7 +4114,7 @@ color:#fff !important;
           <li><a href="#about">About Us</a></li>
           <li><a href="#scores">Client Examples</a></li>
           <li><a href="#faq">FAQ</a></li>
-          <li><a href="#contact">Contact</a></li>
+          <li><a href="{{ $sc['booking_url'] }}" class="js-open-calendar">Book a Call</a></li>
           <li><a href="https://850ficoclub.scorexer.com/Portal/login">Client Login</a></li>
         </ul>
       </div>
@@ -4257,7 +4262,7 @@ color:#fff !important;
 </script>
 
 
-<!-- 850 FICO CLUB Credit Repair Popup -->
+@if (false) {{-- Credit Roadmap popup removed Oct 2026 — dead block, safe to delete --}}
 <style>
     /* ── Overlay ── */
     #ficoOverlay {
@@ -5058,6 +5063,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }, 180000);
 });
 </script>
+@endif
 
 <!-- Page Views Tracking Script -->
 

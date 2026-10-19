@@ -41,29 +41,8 @@ Route::view('/privacy-policy', 'legal.privacy-policy')
 Route::view('/terms-of-service', 'legal.terms-of-service')
     ->name('terms-of-service');
 
-/*
-|--------------------------------------------------------------------------
-| Lead Form Submission
-|--------------------------------------------------------------------------
-*/
-
-use App\Http\Controllers\LeadController;
-
-Route::post('/lead-submit', [LeadController::class, 'submit'])
-    ->name('lead.submit');
-
-
-/*
-|--------------------------------------------------------------------------
-| Credit Roadmap Form Submission
-|--------------------------------------------------------------------------
-*/
-
-use App\Http\Controllers\CreditRoadmapController;
-
-Route::post('/credit-roadmap/submit', [CreditRoadmapController::class, 'submit'])
-    ->name('credit.roadmap.submit');
-
+// Free Consultation form + Credit Roadmap popup removed Oct 2026 (visitors now pay or book a call).
+// /lead-submit and /credit-roadmap/submit no longer exist.
 
 /*
 |--------------------------------------------------------------------------
