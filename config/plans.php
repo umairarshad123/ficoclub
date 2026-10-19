@@ -233,7 +233,7 @@ return [
                 "Lender handoff when you're mortgage or auto ready",
                 '24/7 client portal access',
             ],
-            'best_for'        => 'Full-service credit restoration. Cancel anytime. Hit your goal? Stay in the Club on Club Maintenance for $49/mo.',
+            'best_for'        => 'Full-Service Credit Restoration. Cancel Anytime.',
         ],
 
         // ───────────────────────── PLATINUM FAST TRACK ──────────────────

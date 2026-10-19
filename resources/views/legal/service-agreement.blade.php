@@ -767,7 +767,7 @@ footer{background:var(--navy);padding:72px 0 36px;}
         </tr>
       </tbody>
     </table>
-    <p style="font-size:13px;color:#475569;">Credit monitoring through SmartCredit ($34.95 / month) is billed separately by the monitoring provider and is not included in the fees above. Clients who reach their goal on the 850 Club Membership may continue on Club Maintenance for $49 / month; ongoing monitoring and reviews are described at enrollment.</p>
+    <p style="font-size:13px;color:#475569;">Credit monitoring through SmartCredit ($34.95 / month) is billed separately by the monitoring provider and is not included in the fees above.</p>
 
     <div class="clause-block">
       <div class="clause-num">Billing Terms</div>
