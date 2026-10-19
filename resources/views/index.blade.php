@@ -749,20 +749,24 @@ color:#fff !important;
   </div>
 </div>
 <script src="https://link.msgsndr.com/js/form_embed.js"></script>
+{{-- GHL website chatbot --}}
+<script src="https://widgets.leadconnectorhq.com/loader.js" data-resources-url="https://widgets.leadconnectorhq.com/chat-widget/loader.js" data-widget-id="6accd69f0c1163d89609f2ae"></script>
 <script>
 
       const openBtn = document.getElementById("floatBtn");
       const popup = document.getElementById("calendarPopup");
       const closeBtn = document.getElementById("closeCalendar");
 
-      openBtn.addEventListener("click", function(e){
+      function openCalendar(e){
           e.preventDefault();
           if(window.innerWidth <= 767){
               window.location.href = @json($sc['booking_url']);
           } else {
               popup.style.display = "flex";
           }
-      });
+      }
+      openBtn.addEventListener("click", openCalendar);
+      document.querySelectorAll(".js-open-calendar").forEach(function(a){ a.addEventListener("click", openCalendar); });
 
       closeBtn.addEventListener("click", function(){
           popup.style.display = "none";
@@ -974,7 +978,8 @@ color:#fff !important;
       <li><a href="https://850ficoclub.com/funding">Funding</a></li>
       <li><a href="#remove">Services</a></li>
       <li><a href="#scores">Reviews</a></li>
-    <li><a href="https://app.acuityscheduling.com/schedule/6f79e0fc/appointment/81383610/calendar/12495171?ref=booking_button" class="nav-cta-pill">Free Consultation</a></li>
+      <li><a href="https://850ficoclub.scorexer.com" target="_blank" rel="noopener">Client Login</a></li>
+    <li><a href="{{ $sc['booking_url'] }}" class="nav-cta-pill js-open-calendar">Free Consultation</a></li>
     </ul>
     <button class="hamburger" id="hamburger" aria-label="Menu"><span></span><span></span><span></span></button>
   </div>
@@ -984,7 +989,8 @@ color:#fff !important;
   <a href="https://850ficoclub.com/funding" onclick="closeMob()">Funding</a>
   <a href="#journey" onclick="closeMob()">Services</a>
   <a href="#scores" onclick="closeMob()">Reviews</a>
-  <a href="https://app.acuityscheduling.com/schedule/6f79e0fc/appointment/81383610/calendar/12495171?ref=booking_button" class="mob-cta" onclick="closeMob()">Free Consultation</a>
+  <a href="https://850ficoclub.scorexer.com" target="_blank" rel="noopener" onclick="closeMob()">Client Login</a>
+  <a href="{{ $sc['booking_url'] }}" class="mob-cta" onclick="closeMob()">Free Consultation</a>
 </div>
 
 
@@ -1753,10 +1759,6 @@ color:#fff !important;
   @if (!empty($ps_plan['monitoring_note']))
   <div class="pcmn">{{ $ps_plan['monitoring_note'] }}</div>
   @endif
-  @php $ps_fee = \App\Support\PlanCatalog::surchargePercent(); @endphp
-  @if ($ps_fee > 0)
-  <div class="pcmn" style="opacity:.85">+ {{ rtrim(rtrim(number_format($ps_fee, 2), '0'), '.') }}% card processing fee at checkout</div>
-  @endif
   @if (!empty($ps_plan['save']))
   <div class="psave">SAVE ${{ $ps_plan['save'] }}</div>
   @endif
@@ -1769,7 +1771,7 @@ color:#fff !important;
   @if (!empty($ps_plan['best_for']))
   <div class="pbf"><b>Best for:</b>{{ $ps_plan['best_for'] }}</div>
   @endif
-  <a href="/accept-checkout?plan={{ $ps_key }}" class="btn {{ $ps_plan['btn'] }}">{{ $ps_plan['cta'] }}</a>
+  <a href="{{ $ps_plan['checkout_url'] }}" class="btn {{ $ps_plan['btn'] }}">{{ $ps_plan['cta'] }}</a>
 </div>
 @php $ps_i++; @endphp
 @endforeach
@@ -4116,7 +4118,7 @@ color:#fff !important;
         <div class="footer-col-title">Contact</div>
         <ul class="footer-links">
           <li><a href="mailto:info@850ficoclub.com">info@850ficoclub.com</a></li>
-          <li><a href="https://app.acuityscheduling.com/schedule/6f79e0fc/appointment/81383610/calendar/12495171?ref=booking_button">Free Consultation</a></li>
+          <li><a href="{{ $sc['booking_url'] }}" class="js-open-calendar">Free Consultation</a></li>
         </ul>
       </div>
     </div>

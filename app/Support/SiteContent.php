@@ -47,7 +47,7 @@ class SiteContent
             ],
 
             // "Book a consultation" calendar (GHL booking widget)
-            'booking_url' => 'https://api.leadconnectorhq.com/widget/booking/jdPgwX73WgVZQuCJKFlI',
+            'booking_url' => 'https://api.leadconnectorhq.com/widget/booking/mu5uocMRr08QVUXKU1em',
 
             // Google search snippet for the homepage
             'seo_title'       => '850 FICO Club — Credit Is King & Cash Is Power',
@@ -64,7 +64,9 @@ class SiteContent
 
     public static function all(): array
     {
-        return array_merge(self::defaults(), (array) SiteSettings::get('content', []));
+        // No admin editor any more (removed Oct 2026) — code defaults are the source of truth,
+        // so stale values saved by the old Site Content page are ignored.
+        return self::defaults();
     }
 
     public static function get(string $key): mixed

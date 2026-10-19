@@ -37,13 +37,14 @@
 return [
 
     // Fallback when no/invalid ?plan= is supplied.
-    'default' => 'silver',
+    'default' => 'membership',
 
     'plans' => [
 
         // ───────────────────────────── SILVER ───────────────────────────
         'silver' => [
             'key'             => 'silver',
+            'hidden'          => true,   // retired Oct 2026 — replaced by membership / fast-track
             'commas_product_id' => env('COMMAS_PRODUCT_SILVER'),
             'label'           => 'Silver Plan',
             'tag'             => 'SILVER PLAN',
@@ -84,6 +85,7 @@ return [
         // ───────────────────────────── GOLD ─────────────────────────────
         'gold' => [
             'key'             => 'gold',
+            'hidden'          => true,   // retired Oct 2026 — replaced by membership / fast-track
             'commas_product_id' => env('COMMAS_PRODUCT_GOLD'),
             'label'           => 'Gold Plan',
             'tag'             => 'GOLD PLAN',
@@ -125,6 +127,7 @@ return [
         // ───────────────────────────── PLATINUM ─────────────────────────
         'platinum' => [
             'key'             => 'platinum',
+            'hidden'          => true,   // retired Oct 2026 — replaced by membership / fast-track
             'commas_product_id' => env('COMMAS_PRODUCT_PLATINUM'),
             'label'           => 'Platinum Plan',
             'tag'             => 'PLATINUM PLAN',
@@ -163,6 +166,7 @@ return [
         // ───────────────────────────── $2,000 ────────────────────────────
         'signature' => [
             'key'             => 'signature',
+            'hidden'          => true,   // retired Oct 2026 — replaced by membership / fast-track
             'commas_product_id' => env('COMMAS_PRODUCT_SIGNATURE'),
             'label'           => 'Signature Plan',
             'tag'             => 'SIGNATURE PLAN',
@@ -193,6 +197,79 @@ return [
                 '24/7 client portal access + lifetime credit guidance',
             ],
             'best_for'        => 'Clients who want the most complete, fully done-for-you program with lifetime guidance.',
+        ],
+
+        // ───────────────────────── 850 CLUB MEMBERSHIP ──────────────────
+        // Checkout runs on the GHL page (Authorize.Net) via checkout_url, not /accept-checkout.
+        'membership' => [
+            'key'             => 'membership',
+            'checkout_url'    => 'https://packages.850ficoclub.com/checkout/membership',
+            'label'           => '850 Club Membership',
+            'tag'             => '850 CLUB MEMBERSHIP',
+            'tagline'         => 'Monthly Plan',
+            'desc'            => 'Full-service credit restoration, round after round, until you reach your goal.',
+            'amount'          => '149.00',
+            'recurring'       => '149.00',
+            'compare_at'      => null,
+            'save'            => null,
+            'price_big'       => '149',
+            'period'          => '/month',
+            'billing_note'    => '/month · + $34.95/mo SmartCredit monitoring',
+            'monitoring_note' => '+ $34.95/mo Smart Credit monitoring',
+            'sub_note'        => 'Monthly plan',
+            'color'           => 'gold-card',
+            'btn'             => 'btn-light',
+            'tag_class'       => 'gold-tag',
+            'badge'           => 'MOST POPULAR',
+            'is_couples'      => false,
+            'cta'             => 'Join the Club',
+            'features'        => [
+                'Disputes sent to Equifax, Experian & TransUnion every 30–35 days',
+                'Unlimited items challenged: late payments, collections, charge-offs, inquiries & public records',
+                'Debt validation & goodwill letters sent to your creditors',
+                'Monthly progress report + score review',
+                'Rent reporting setup to add positive payment history',
+                'Authorized user tradeline strategy guidance',
+                "Lender handoff when you're mortgage or auto ready",
+                '24/7 client portal access',
+            ],
+            'best_for'        => 'Full-service credit restoration, no setup fee. Cancel anytime. Hit your goal? Stay in the Club on Club Maintenance for $49/mo.',
+        ],
+
+        // ───────────────────────── PLATINUM FAST TRACK ──────────────────
+        'fast-track' => [
+            'key'             => 'fast-track',
+            'checkout_url'    => 'https://packages.850ficoclub.com/checkout/fast-track',
+            'label'           => 'Platinum Fast Track',
+            'tag'             => 'PLATINUM FAST TRACK',
+            'tagline'         => 'One-Time Payment',
+            'desc'            => 'An accelerated 90-day program for clients on a deadline: buying a home, financing a car, or refinancing.',
+            'amount'          => '1497.00',
+            'recurring'       => null,
+            'compare_at'      => null,
+            'save'            => null,
+            'price_big'       => '1,497',
+            'period'          => 'one-time',
+            'billing_note'    => 'one-time · + $34.95/mo SmartCredit monitoring',
+            'monitoring_note' => '+ $34.95/mo Smart Credit monitoring',
+            'sub_note'        => 'One-time payment',
+            'color'           => 'platinum-card',
+            'btn'             => 'btn-gold',
+            'tag_class'       => 'platinum-tag',
+            'badge'           => 'VIP',
+            'is_couples'      => false,
+            'cta'             => 'Start Fast Track',
+            'features'        => [
+                '3 accelerated dispute rounds across all 3 bureaus',
+                'Every negative item type challenged, including public records',
+                'Direct creditor interventions: debt validation & goodwill requests',
+                'Dedicated credit specialist assigned to your file',
+                'Front-of-line priority processing',
+                'Custom mortgage-readiness plan',
+                'Direct coordination with your loan officer',
+                '24/7 VIP client portal + live score tracking',
+            ],
+            'best_for'        => 'Clients on a deadline. One payment, no monthly service fee.',
         ],
 
         // ───────────────────────────── $1 TEST (hidden) ──────────────────

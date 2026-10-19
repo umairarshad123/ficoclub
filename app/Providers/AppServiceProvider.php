@@ -19,7 +19,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Admin edits to plans (Admin → Plans & Pricing) override config/plans.php.
-        \App\Support\PlanCatalog::boot();
+        //
     }
 }

@@ -19,11 +19,9 @@ return Application::configure(basePath: dirname(__DIR__))
 
     $middleware->validateCsrfTokens(except: [
         'webhooks/authorize-net',
-        'webhooks/commas',
     ]);
     $middleware->alias([
         'referral'   => \App\Http\Middleware\ReferralMiddleware::class,
-        'admin.auth' => \App\Http\Middleware\AdminAuth::class,
     ]);
 })
 
