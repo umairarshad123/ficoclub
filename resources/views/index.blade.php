@@ -1781,11 +1781,6 @@ color:#fff !important;
 
     </div>
 
-    {{-- ───────────────────────────── CROA / Coaching Disclaimer ─────────────────── --}}
-    <div class="pricing-disclaimer" style="margin:42px auto 0;max-width:1080px;padding:20px 24px;border-radius:14px;background:#f8fafc;border:1px solid #e5e7eb;font-size:13px;line-height:1.7;color:#475569;text-align:center">
-      850 FICO Club is a credit repair organization as defined under the Credit Repair Organizations Act (CROA), 15 U.S.C. § 1679 <em>et seq.</em>
-      In full compliance with CROA, no fees are collected until after the contracted services have been fully performed.
-    </div>
 
   </div>
 </div>
@@ -4140,7 +4135,6 @@ color:#fff !important;
 
     <div class="footer-disclaimer" style="margin-top:18px;padding-top:18px;border-top:1px solid rgba(255,255,255,0.06);font-size:12px;line-height:1.7;color:rgba(255,255,255,0.55);max-width:1100px">
       850 FICO Club is a credit repair organization as defined under the Credit Repair Organizations Act (CROA), 15 U.S.C. § 1679 <em>et seq.</em>
-      In full compliance with CROA, no fees are collected until after the contracted services have been fully performed.
     </div>
   </div>
 </footer>

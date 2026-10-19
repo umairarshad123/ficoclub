@@ -563,8 +563,8 @@ footer{background:var(--navy);padding:72px 0 36px;}
     <p>By enrolling in a service plan, you authorize 850 FICO Club to charge your payment method the fees associated with your selected plan. All fees are described in detail in your <a href="/service-agreement">Service Agreement</a>.</p>
 
     <div class="clause-block">
-      <div class="clause-num">CROA Fee Compliance</div>
-      <p>In accordance with the <strong>Credit Repair Organizations Act (CROA)</strong>, 850 FICO Club does not charge or receive any payment for services before those services have been fully performed. Plan fees (850 Club Membership at $149 / month and Platinum Fast Track at $1,497) cover the services described in your Service Agreement.</p>
+      <div class="clause-num">Plan Fees</div>
+      <p>Plan fees (850 Club Membership at $149 / month and Platinum Fast Track at $1,497) cover the services described in your Service Agreement.</p>
     </div>
 
     <div class="clause-block">

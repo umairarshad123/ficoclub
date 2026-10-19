@@ -741,7 +741,7 @@ footer{background:var(--navy);padding:72px 0 36px;}
     <!-- SECTION 3 — FEES -->
     <span class="section-label" id="fees">Section 03</span>
     <h2>Fees, Billing &amp; Payment Terms</h2>
-    <p>Fees for services rendered by 850 FICO Club are structured as follows. In accordance with the Credit Repair Organizations Act (CROA), <strong>no fees are charged or collected before the promised services have been performed.</strong></p>
+    <p>Fees for services rendered by 850 FICO Club are structured as follows.</p>
 
     <table class="pricing-table">
       <thead>
@@ -762,7 +762,7 @@ footer{background:var(--navy);padding:72px 0 36px;}
         <tr>
           <td>Platinum Fast Track</td>
           <td>$1,497</td>
-          <td>Program fee for the 90-day program</td>
+          <td>Program fee for the 4-month program</td>
           <td>1 Individual</td>
         </tr>
       </tbody>
@@ -771,7 +771,7 @@ footer{background:var(--navy);padding:72px 0 36px;}
 
     <div class="clause-block">
       <div class="clause-num">Billing Terms</div>
-      <p>The 850 Club Membership fee is billed monthly on the same calendar date each month. The Platinum Fast Track program fee covers the 90-day program described at enrollment. All fees are charged to the payment method on file at the time of billing. <strong>Client is responsible for maintaining a valid payment method on file at all times.</strong> Failed payments may result in a temporary suspension of services until the balance is resolved.</p>
+      <p>The 850 Club Membership fee is billed monthly on the same calendar date each month. The Platinum Fast Track program fee covers the 4-month program described at enrollment. All fees are charged to the payment method on file at the time of billing. <strong>Client is responsible for maintaining a valid payment method on file at all times.</strong> Failed payments may result in a temporary suspension of services until the balance is resolved.</p>
     </div>
 
     <div class="clause-block">
